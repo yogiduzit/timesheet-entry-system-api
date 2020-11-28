@@ -200,7 +200,7 @@ public class TimesheetManager implements Serializable {
      *
      * @throws SQLException
      */
-    public void merge(Timesheet timesheet) throws SQLException {
+    public void merge(Timesheet timesheet, Integer id) throws SQLException {
         final int EmpNo = 1;
         final int EndWeek = 2;
         final int TimesheetID = 3;
@@ -213,7 +213,7 @@ public class TimesheetManager implements Serializable {
                 connection.setAutoCommit(false);
                 try {
                     stmt = connection.prepareStatement(
-                            "UPDATE Timesheets " + "SET EmpNo = ?, EndWeek = ? " + "WHERE TimesheetID = ?");
+                            "UPDATE Timesheets " + "SET EmpNo = ?, EndWeek = ? " + "WHERE TimesheetID = '" + id + "'");
                     stmt.setInt(EmpNo, timesheet.getEmployee().getEmpNumber());
                     stmt.setDate(EndWeek, java.sql.Date.valueOf(timesheet.getEndWeek()));
                     stmt.setInt(TimesheetID, timesheet.getId());

@@ -176,7 +176,7 @@ public class EmployeeManager implements Serializable {
      * @param employee, POJO representing the employee record
      * @throws SQLException
      */
-    public void merge(Employee employee) throws SQLException {
+    public void merge(Employee employee, int id) throws SQLException {
         final int empName = 1;
         final int empUsername = 2;
         final int empNo = 3;
@@ -187,7 +187,7 @@ public class EmployeeManager implements Serializable {
                 connection = dataSource.getConnection();
                 try {
                     stmt = connection.prepareStatement(
-                            "UPDATE Employees " + "SET EmpName = ?, EmpUserName = ? " + "WHERE EmpNo = ?");
+                            "UPDATE Employees " + "SET EmpName = ?, EmpUserName = ? " + "WHERE EmpNo = '" + id + "'");
                     stmt.setString(empName, employee.getFullName());
                     stmt.setString(empUsername, employee.getUsername());
                     stmt.setInt(empNo, employee.getEmpNumber());
@@ -216,14 +216,14 @@ public class EmployeeManager implements Serializable {
      * @param employee, Employee POJO
      * @throws SQLException
      */
-    public void remove(Employee employee) throws SQLException {
+    public void remove(Employee employee, int id) throws SQLException {
         Connection connection = null;
         PreparedStatement stmt = null;
         try {
             try {
                 connection = dataSource.getConnection();
                 try {
-                    stmt = connection.prepareStatement("DELETE FROM Employees WHERE EmpNo = ?");
+                    stmt = connection.prepareStatement("DELETE FROM Employees WHERE EmpNo = '" + id + "'");
                     stmt.setInt(1, employee.getEmpNumber());
                     stmt.executeUpdate();
                 } finally {

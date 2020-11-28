@@ -165,7 +165,7 @@ public class TimesheetRowManager implements Serializable {
                 connection = dataSource.getConnection();
                 try {
                     stmt = connection.prepareStatement("UPDATE TimesheetRows "
-                            + "SET HoursForWeek=?, Notes=?, ProjectID=?, WorkPackage=? " + "WHERE TimesheetId = ?");
+                            + "SET HoursForWeek=?, Notes=?, ProjectID=?, WorkPackage=? " + "WHERE TimesheetId = '" + timesheetId + "'");
                     for (final TimesheetRow timesheetRow : timesheetRows) {
                         if (timesheetRow.getWorkPackage() == null || timesheetRow.getWorkPackage().isEmpty()) {
                             continue;

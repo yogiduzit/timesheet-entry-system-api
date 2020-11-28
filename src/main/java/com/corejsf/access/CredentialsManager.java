@@ -138,7 +138,7 @@ public class CredentialsManager implements Serializable {
      * @param credentials, credentials object containing username and password
      * @throws SQLException
      */
-    public void merge(Credentials credentials) throws SQLException {
+    public void merge(Credentials credentials, int id) throws SQLException {
         final int EmpUserName = 1;
         final int EmpPassword = 2;
         final int EmpNo = 3;
@@ -150,7 +150,7 @@ public class CredentialsManager implements Serializable {
                 connection = dataSource.getConnection();
                 try {
                     stmt = connection.prepareStatement(
-                            "UPDATE Credentials " + "SET EmpUserName=?, EmpPassword=? " + "WHERE EmpNo = ?");
+                            "UPDATE Credentials " + "SET EmpUserName=?, EmpPassword=? " + "WHERE EmpNo = '" + id + "'");
                     stmt.setInt(EmpNo, credentials.getEmpNumber());
                     stmt.setString(EmpUserName, credentials.getUsername());
                     stmt.setString(EmpPassword, credentials.getPassword());
