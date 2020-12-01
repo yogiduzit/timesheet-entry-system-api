@@ -5,15 +5,14 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLDataException;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ConversationScoped;
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
 
@@ -34,14 +33,13 @@ public class TimesheetRowManager implements Serializable {
      * Variable for the serializable.
      */
     private static final long serialVersionUID = -1786252399378663291L;
-    private static String TAG = "TimesheeetRow";
+    private static String TAG = TimesheetRowManager.class.getSimpleName();
 
     /**
      * Datasource for a project
      */
     @Resource(mappedName = "java:jboss/datasources/MySQLDS")
     private DataSource dataSource;
-
 
     /**
      * Gets all timesheet rows associated with a timesheet
@@ -106,7 +104,8 @@ public class TimesheetRowManager implements Serializable {
             try {
                 connection = dataSource.getConnection();
                 try {
-                    stmt = connection.prepareStatement("INSERT INTO TimesheetRows VALUES(?, ?, ?, ?, ?)");
+                    stmt = connection.prepareStatement("INSERT INTO TimesheetRows VALUES(?, ?, ?, ?, ?)",
+                            Statement.RETURN_GENERATED_KEYS);
                     for (final TimesheetRow timesheetRow : timesheetRows) {
                         if (timesheetRow.getWorkPackage() == null || timesheetRow.getWorkPackage().isEmpty()) {
                             continue;
@@ -120,6 +119,12 @@ public class TimesheetRowManager implements Serializable {
                         stmt.clearParameters();
                     }
                     stmt.executeBatch();
+
+                    final int counter = 0;
+                    final ResultSet rs = stmt.getGeneratedKeys();
+                    while (rs.next()) {
+                        timesheetRows.get(counter).setId(rs.getString(1));
+                    }
                 } finally {
                     if (stmt != null) {
                         stmt.close();
@@ -151,7 +156,7 @@ public class TimesheetRowManager implements Serializable {
         final int Notes = 2;
         final int ProjectID = 3;
         final int WorkPackage = 4;
-        final int TimesheetID = 5;
+        final int TimesheetRowID = 5;
 
         Connection connection = null;
         PreparedStatement stmt = null;
@@ -160,12 +165,12 @@ public class TimesheetRowManager implements Serializable {
                 connection = dataSource.getConnection();
                 try {
                     stmt = connection.prepareStatement("UPDATE TimesheetRows "
-                            + "SET HoursForWeek=?, Notes=?, ProjectID=?, WorkPackage=? " + "WHERE TimesheetId = ?");
+                            + "SET HoursForWeek=?, Notes=?, ProjectID=?, WorkPackage=? " + "WHERE TimesheetRowID=?");
                     for (final TimesheetRow timesheetRow : timesheetRows) {
                         if (timesheetRow.getWorkPackage() == null || timesheetRow.getWorkPackage().isEmpty()) {
                             continue;
                         }
-                        stmt.setInt(TimesheetID, timesheetId);
+                        stmt.setString(TimesheetRowID, timesheetRow.getId());
                         stmt.setInt(ProjectID, timesheetRow.getProjectID());
                         stmt.setString(WorkPackage, timesheetRow.getWorkPackage());
                         stmt.setString(Notes, timesheetRow.getNotes());

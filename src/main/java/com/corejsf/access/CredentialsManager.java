@@ -7,7 +7,6 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 
@@ -77,9 +76,42 @@ public class CredentialsManager implements Serializable {
                 }
             }
         } catch (final SQLException ex) {
-            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
-            return null;
+            throw ex;
+        }
+        return null;
+    }
+
+    public Credentials find(String empUserName) throws SQLException {
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        try {
+            try {
+                connection = dataSource.getConnection();
+                try {
+                    stmt = connection.prepareStatement("SELECT * FROM Credentials WHERE EmpUserName = ?");
+                    stmt.setString(1, empUserName);
+                    ;
+                    final ResultSet result = stmt.executeQuery();
+                    if (result.next()) {
+                        final Credentials credentials = new Credentials(result.getString("EmpUserName"),
+                                result.getString("EmpPassword"));
+                        credentials.setEmpNumber(result.getInt("EmpNo"));
+                        return credentials;
+                    }
+                } finally {
+                    if (stmt != null) {
+                        stmt.close();
+                    }
+                }
+            } finally {
+                if (connection != null) {
+                    connection.close();
+                }
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+            throw ex;
         }
         return null;
     }
@@ -120,8 +152,8 @@ public class CredentialsManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
-            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
+            throw ex;
         }
     }
 
@@ -163,8 +195,8 @@ public class CredentialsManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
-            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
+            throw ex;
 
         }
     }

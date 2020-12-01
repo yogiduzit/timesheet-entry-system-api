@@ -3,14 +3,14 @@ package com.corejsf.services;
 import java.net.URI;
 import java.sql.SQLException;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -26,14 +26,15 @@ public class EmployeeService {
     @Inject
     private EmployeeManager employeeManager;
 
-    @Path("/{id}")
+    @PermitAll
     @GET
+    @Path("/{id}")
     @Produces("application/json")
     public Employee find(@PathParam("id") Integer empId) {
         Employee employee;
         try {
             employee = employeeManager.find(empId);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             e.printStackTrace();
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 
@@ -46,12 +47,11 @@ public class EmployeeService {
 
     @GET
     @Produces("application/json")
-    public Employee[] getAll()  {
+    public Employee[] getAll() {
         Employee[] employees;
         try {
             employees = employeeManager.getAll();
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
+        } catch (final SQLException e) {
             e.printStackTrace();
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
@@ -61,12 +61,13 @@ public class EmployeeService {
         return employees;
     }
 
+    @RolesAllowed("ADMIN")
     @POST
     @Consumes("application/json")
     public Response persist(Employee employee) {
         try {
             employeeManager.persist(employee);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             return Response.serverError().build();
@@ -80,7 +81,7 @@ public class EmployeeService {
     public Response merge(Employee employee, @PathParam("id") Integer empId) {
         try {
             employeeManager.merge(employee, empId);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             return Response.serverError().build();
@@ -93,7 +94,7 @@ public class EmployeeService {
     public Response remove(Employee employee, @PathParam("id") Integer empId) {
         try {
             employeeManager.remove(employee, empId);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             return Response.serverError().build();

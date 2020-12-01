@@ -30,8 +30,8 @@ CREATE TABLE Admins(
 DROP TABLE IF EXISTS Credentials;
 CREATE TABLE Credentials(
     EmpNo INT(5) NOT NULL UNIQUE,
-    EmpUserName VARCHAR(10) NOT NULL UNIQUE,
-    EmpPassword VARCHAR(15) NOT NULL,
+    EmpUserName VARCHAR(20) NOT NULL UNIQUE,
+    EmpPassword BINARY(32) NOT NULL,
     CONSTRAINT FKCredentialEmpNo
         FOREIGN KEY (EmpNo)
             REFERENCES Employees(EmpNo)
@@ -67,6 +67,7 @@ CREATE TABLE Timesheets(
 
 DROP TABLE IF EXISTS TimesheetRows;
 CREATE TABLE TimesheetRows(
+	TimesheetRowID INT(10) NOT NULL UNIQUE AUTO_INCREMENT,
     TimesheetID INT(5) NOT NULL,
     ProjectID INT(5) NOT NULL,
     WorkPackage VARCHAR(10) NOT NULL,

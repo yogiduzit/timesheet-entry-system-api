@@ -170,7 +170,7 @@ public class TimesheetManager implements Serializable {
                         timesheetId = rs.getInt(1);
                     }
                     connection.commit();
-                    rowManager.create(timesheetId, timesheet.getDetails());
+                    rowManager.create(timesheet.getId(), timesheet.getDetails());
                 } catch (final SQLException e) {
                     connection.rollback();
                     throw e;
@@ -199,7 +199,7 @@ public class TimesheetManager implements Serializable {
      *
      * @throws SQLException
      */
-    public void merge(Timesheet timesheet, Integer id) throws SQLException {
+    public void merge(Timesheet timesheet, int id) throws SQLException {
         final int EmpNo = 1;
         final int EndWeek = 2;
         final int TimesheetID = 3;
