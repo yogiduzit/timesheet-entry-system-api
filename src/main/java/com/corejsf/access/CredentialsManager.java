@@ -7,17 +7,15 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLDataException;
+
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ConversationScoped;
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
 
-import com.corejsf.messages.MessageProvider;
 import com.corejsf.model.employee.Credentials;
 
 /**
@@ -43,12 +41,6 @@ public class CredentialsManager implements Serializable {
      */
     @Resource(mappedName = "java:jboss/datasources/MySQLDS")
     private DataSource dataSource;
-
-    @Inject
-    /**
-     * Provides access to the messages from the message bundle
-     */
-    private MessageProvider msgProvider;
 
     /**
      * Method to get the credentials by employee number
@@ -85,8 +77,9 @@ public class CredentialsManager implements Serializable {
                 }
             }
         } catch (final SQLException ex) {
+            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.find", new Object[] { TAG }));
+            return null;
         }
         return null;
     }
@@ -127,8 +120,8 @@ public class CredentialsManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
+            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.create", new Object[] { TAG }));
         }
     }
 
@@ -170,8 +163,9 @@ public class CredentialsManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
+            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.edit", new Object[] { TAG }));
+
         }
     }
 

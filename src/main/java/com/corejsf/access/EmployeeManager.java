@@ -18,7 +18,6 @@ import javax.inject.Named;
 import javax.mail.AuthenticationFailedException;
 import javax.sql.DataSource;
 
-import com.corejsf.messages.MessageProvider;
 import com.corejsf.model.employee.Credentials;
 import com.corejsf.model.employee.Employee;
 
@@ -40,12 +39,6 @@ public class EmployeeManager implements Serializable {
      * Provides access to the credentials table in the datasource
      */
     private CredentialsManager credentialsManager;
-
-    @Inject
-    /**
-     * Provides access to messages in the message bundle
-     */
-    private MessageProvider msgProvider;
 
     @Inject
     /**
@@ -87,8 +80,9 @@ public class EmployeeManager implements Serializable {
                 }
             }
         } catch (final SQLException ex) {
+            System.out.println("Error in find " + TAG);
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.find", new Object[] { TAG }));
+            return null;
         }
     }
 
@@ -126,7 +120,9 @@ public class EmployeeManager implements Serializable {
                 }
             }
         } catch (final SQLException ex) {
-            throw new SQLDataException(msgProvider.getValue("error.find", new Object[] { TAG }));
+            System.out.println("Error in find " + TAG);
+            ex.printStackTrace();
+            return null;
         }
     }
 
@@ -165,8 +161,8 @@ public class EmployeeManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
+            System.out.println("Error in find " + TAG);
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.create", new Object[] { TAG }));
         }
     }
 
@@ -206,7 +202,8 @@ public class EmployeeManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
-            throw new SQLDataException(msgProvider.getValue("error.edit", new Object[] { TAG }));
+            System.out.println("Error in find " + id);
+            ex.printStackTrace();
         }
     }
 
@@ -240,7 +237,8 @@ public class EmployeeManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
-            throw new SQLDataException(msgProvider.getValue("error.delete", new Object[] { TAG }));
+            System.out.println("Error in find " + TAG);
+            ex.printStackTrace();
         }
     }
 
@@ -275,7 +273,9 @@ public class EmployeeManager implements Serializable {
                 }
             }
         } catch (final SQLException ex) {
-            throw new SQLDataException(msgProvider.getValue("error.getAll", new Object[] { TAG }));
+            System.out.println("Error in find " + TAG);
+            ex.printStackTrace();
+            return null;
         }
 
         final Employee[] subarray = new Employee[employees.size()];
@@ -292,20 +292,20 @@ public class EmployeeManager implements Serializable {
      * @throws AuthenticationFailedException, if credentials don't match
      * @throws SQLException
      */
-    public boolean verifyUser(Employee employee, Credentials credentials)
-            throws AuthenticationFailedException, SQLException {
-        if (employee == null || credentials == null) {
-            return false;
-        }
-        final Credentials found = credentialsManager.find(employee.getEmpNumber());
-        if (found == null) {
-            throw new AuthenticationFailedException(msgProvider.getValue("error.authentication.unknownEmployee"));
-        }
-        if (!credentials.equals(found)) {
-            throw new AuthenticationFailedException(msgProvider.getValue("error.authentication.wrongCredentials"));
-        }
-        return true;
-    }
+//    public boolean verifyUser(Employee employee, Credentials credentials)
+//            throws AuthenticationFailedException, SQLException {
+//        if (employee == null || credentials == null) {
+//            return false;
+//        }
+//        final Credentials found = credentialsManager.find(employee.getEmpNumber());
+//        if (found == null) {
+//            throw new AuthenticationFailedException(msgProvider.getValue("error.authentication.unknownEmployee"));
+//        }
+//        if (!credentials.equals(found)) {
+//            throw new AuthenticationFailedException(msgProvider.getValue("error.authentication.wrongCredentials"));
+//        }
+//        return true;
+//    }
 
     /**
      * Gets the current employee
