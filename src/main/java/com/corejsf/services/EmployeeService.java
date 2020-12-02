@@ -19,6 +19,7 @@ import javax.ws.rs.core.Response;
 
 import com.corejsf.access.EmployeeManager;
 import com.corejsf.model.employee.Employee;
+import com.corejsf.services.security.annotations.Secured;
 
 @Path("/employees")
 public class EmployeeService {
@@ -45,6 +46,7 @@ public class EmployeeService {
         return employee;
     }
 
+    @Secured
     @GET
     @Produces("application/json")
     public Employee[] getAll() {
