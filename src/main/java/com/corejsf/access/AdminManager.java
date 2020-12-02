@@ -28,15 +28,14 @@ public class AdminManager implements Serializable {
     @Resource(mappedName = "java:jboss/datasources/MySQLDS")
     private DataSource dataSource;
 
-
-
     /**
      * Finds the admin user for the application
      *
      * @return the admin employee
+     * @throws SQLException
      * @throws SQLDataException
      */
-    public Employee find() {
+    public Employee find() throws SQLException {
         Connection connection = null;
         Statement stmt = null;
         try {
@@ -63,9 +62,8 @@ public class AdminManager implements Serializable {
                 }
             }
         } catch (final SQLException ex) {
-            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
-            return null;
+            throw ex;
         }
     }
 

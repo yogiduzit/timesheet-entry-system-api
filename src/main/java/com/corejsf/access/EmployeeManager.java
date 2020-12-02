@@ -1,7 +1,6 @@
 package com.corejsf.access;
 
 import java.io.Serializable;
-import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,11 +11,9 @@ import java.util.ArrayList;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ConversationScoped;
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
 
-import com.corejsf.helpers.PasswordHelper;
 import com.corejsf.model.employee.Employee;
 
 @Named("employeeManager")
@@ -32,27 +29,7 @@ public class EmployeeManager implements Serializable {
     @Resource(mappedName = "java:jboss/datasources/MySQLDS")
     private DataSource dataSource;
 
-    @Inject
-    /**
-     * Provides access to the credentials table in the datasource
-     */
-    private CredentialsManager credentialsManager;
-
-    @Inject
-    /**
-     * Provides access to the admin table in the datasource
-     */
-    private AdminManager adminManager;
-
-    private PasswordHelper passwordHelper;
-
     public EmployeeManager() {
-        try {
-            passwordHelper = new PasswordHelper();
-        } catch (final NoSuchAlgorithmException e) {
-            passwordHelper = null;
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -89,9 +66,8 @@ public class EmployeeManager implements Serializable {
                 }
             }
         } catch (final SQLException ex) {
-            System.out.println("Error in find " + TAG);
             ex.printStackTrace();
-            return null;
+            throw ex;
         }
     }
 
@@ -129,9 +105,8 @@ public class EmployeeManager implements Serializable {
                 }
             }
         } catch (final SQLException ex) {
-            System.out.println("Error in find " + TAG);
             ex.printStackTrace();
-            return null;
+            throw ex;
         }
     }
 
@@ -170,8 +145,8 @@ public class EmployeeManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
-            System.out.println("Error in find " + TAG);
             ex.printStackTrace();
+            throw ex;
         }
     }
 
@@ -211,8 +186,8 @@ public class EmployeeManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
-            System.out.println("Error in find " + id);
             ex.printStackTrace();
+            throw ex;
         }
     }
 
@@ -242,12 +217,9 @@ public class EmployeeManager implements Serializable {
                     connection.close();
                 }
             }
-        } catch (final SQLIntegrityConstraintViolationException ex) {
+        } catch (final SQLException ex) {
             ex.printStackTrace();
             throw ex;
-        } catch (final SQLException ex) {
-            System.out.println("Error in find " + TAG);
-            ex.printStackTrace();
         }
     }
 
@@ -282,9 +254,8 @@ public class EmployeeManager implements Serializable {
                 }
             }
         } catch (final SQLException ex) {
-            System.out.println("Error in find " + TAG);
             ex.printStackTrace();
-            return null;
+            throw ex;
         }
 
         final Employee[] subarray = new Employee[employees.size()];

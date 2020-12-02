@@ -1,6 +1,5 @@
 package com.corejsf.services;
 
-import java.sql.SQLDataException;
 import java.sql.SQLException;
 
 import javax.ejb.Local;
@@ -19,13 +18,20 @@ import com.corejsf.model.employee.Employee;
 @Stateless
 @Local
 public class AdminService {
-    
-    @Inject AdminManager adminManager;
-    
+
+    @Inject
+    AdminManager adminManager;
+
     @GET
     @Produces("application/json")
     public Employee find() {
-        final Employee admin = adminManager.find();
+        Employee admin;
+        try {
+            admin = adminManager.find();
+        } catch (final SQLException e) {
+            e.printStackTrace();
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
         if (admin == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }

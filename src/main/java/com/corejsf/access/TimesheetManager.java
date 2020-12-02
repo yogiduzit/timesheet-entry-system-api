@@ -4,9 +4,7 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLDataException;
 import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +48,6 @@ public class TimesheetManager implements Serializable {
     @Inject
     private EmployeeManager empManager;
 
-
     /**
      * Getting the Timesheets.
      *
@@ -85,11 +82,7 @@ public class TimesheetManager implements Serializable {
                     connection.close();
                 }
             }
-        } catch (final SQLIntegrityConstraintViolationException ex) {
-            ex.printStackTrace();
-            throw ex;
         } catch (final SQLException ex) {
-            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
             return null;
         }
@@ -131,11 +124,7 @@ public class TimesheetManager implements Serializable {
                     connection.close();
                 }
             }
-        } catch (final SQLIntegrityConstraintViolationException ex) {
-            ex.printStackTrace();
-            throw ex;
         } catch (final SQLException ex) {
-            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
             return null;
         }
@@ -184,9 +173,6 @@ public class TimesheetManager implements Serializable {
                     connection.close();
                 }
             }
-        } catch (final SQLIntegrityConstraintViolationException ex) {
-            ex.printStackTrace();
-            throw ex;
         } catch (final SQLException ex) {
             System.out.println("Error in find" + TAG);
             ex.printStackTrace();
@@ -232,12 +218,10 @@ public class TimesheetManager implements Serializable {
                     connection.close();
                 }
             }
-        } catch (final SQLIntegrityConstraintViolationException ex) {
-            ex.printStackTrace();
-            throw ex;
         } catch (final SQLException ex) {
             System.out.println("Error in find" + TAG);
             ex.printStackTrace();
+            throw ex;
         }
     }
 }

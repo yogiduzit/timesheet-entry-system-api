@@ -5,7 +5,6 @@ package com.corejsf.access;
 
 import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,7 +15,8 @@ import javax.annotation.Resource;
 import javax.enterprise.context.ConversationScoped;
 import javax.inject.Named;
 import javax.sql.DataSource;
-import javax.sql.rowset.serial.SerialBlob;
+
+import org.apache.commons.codec.binary.Hex;
 
 import com.corejsf.helpers.PasswordHelper;
 import com.corejsf.model.employee.Credentials;
@@ -63,19 +63,18 @@ public class CredentialsManager implements Serializable {
      * @return null, if the emp does not exist
      * @throws SQLException
      */
-    public Credentials find(int empNumber) throws SQLException {
+    public Credentials findByToken(String token) throws SQLException {
         Connection connection = null;
         PreparedStatement stmt = null;
         try {
             try {
                 connection = dataSource.getConnection();
                 try {
-                    stmt = connection.prepareStatement("SELECT * FROM Credentials WHERE EmpNo = ?");
-                    stmt.setInt(1, empNumber);
+                    stmt = connection.prepareStatement("SELECT * FROM Credentials WHERE EmpToken = ?");
+                    stmt.setBytes(1, token.getBytes());
                     final ResultSet result = stmt.executeQuery();
                     if (result.next()) {
-                        final Blob blob = result.getBlob("EmpPassword");
-                        final String password = new String(blob.getBytes(1L, Long.valueOf(blob.length()).intValue()));
+                        final String password = Hex.encodeHexString(result.getBytes("EmpToken"));
                         final Credentials credentials = new Credentials(result.getString("EmpUserName"), password);
                         credentials.setEmpNumber(result.getInt("EmpNo"));
                         return credentials;
@@ -106,11 +105,10 @@ public class CredentialsManager implements Serializable {
                 try {
                     stmt = connection.prepareStatement("SELECT * FROM Credentials WHERE EmpUserName = ?");
                     stmt.setString(1, empUserName);
-                    ;
                     final ResultSet result = stmt.executeQuery();
                     if (result.next()) {
-                        final Credentials credentials = new Credentials(result.getString("EmpUserName"),
-                                result.getString("EmpPassword"));
+                        final String password = Hex.encodeHexString(result.getBytes("EmpToken"));
+                        final Credentials credentials = new Credentials(result.getString("EmpUserName"), password);
                         credentials.setEmpNumber(result.getInt("EmpNo"));
                         return credentials;
                     }
@@ -140,7 +138,7 @@ public class CredentialsManager implements Serializable {
     public void insert(Credentials credentials) throws SQLException {
         final int EmpNo = 1;
         final int EmpUserName = 2;
-        final int EmpPassword = 3;
+        final int EmpToken = 3;
         Connection connection = null;
         PreparedStatement stmt = null;
         try {
@@ -150,9 +148,8 @@ public class CredentialsManager implements Serializable {
                     stmt = connection.prepareStatement("INSERT INTO Credentials VALUES(?, ?, ?)");
                     stmt.setInt(EmpNo, credentials.getEmpNumber());
                     stmt.setString(EmpUserName, credentials.getUsername());
-                    final Blob blob = new SerialBlob(passwordHelper.encrypt(credentials.getPassword()));
-                    stmt.setBlob(EmpPassword, blob);
-
+                    final byte[] token = passwordHelper.encrypt(credentials.getUsername() + credentials.getPassword());
+                    stmt.setBytes(EmpToken, token);
                     stmt.executeUpdate();
                 } finally {
                     if (stmt != null) {
@@ -181,7 +178,7 @@ public class CredentialsManager implements Serializable {
      */
     public void merge(Credentials credentials, int id) throws SQLException {
         final int EmpUserName = 1;
-        final int EmpPassword = 2;
+        final int EmpToken = 2;
         final int EmpNo = 3;
 
         Connection connection = null;
@@ -194,9 +191,8 @@ public class CredentialsManager implements Serializable {
                             "UPDATE Credentials " + "SET EmpUserName=?, EmpPassword=? " + "WHERE EmpNo = ?");
                     stmt.setInt(EmpNo, id);
                     stmt.setString(EmpUserName, credentials.getUsername());
-                    final Blob blob = new SerialBlob(passwordHelper.encrypt(credentials.getPassword()));
-                    stmt.setBlob(EmpPassword, blob);
-
+                    final byte[] token = passwordHelper.encrypt(credentials.getUsername() + credentials.getPassword());
+                    stmt.setBytes(EmpToken, token);
                     stmt.executeUpdate();
                 } finally {
                     if (stmt != null) {
@@ -208,13 +204,9 @@ public class CredentialsManager implements Serializable {
                     connection.close();
                 }
             }
-        } catch (final SQLIntegrityConstraintViolationException ex) {
-            ex.printStackTrace();
-            throw ex;
         } catch (final SQLException ex) {
             ex.printStackTrace();
             throw ex;
-
         }
     }
 

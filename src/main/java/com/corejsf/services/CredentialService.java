@@ -20,17 +20,18 @@ import com.corejsf.model.employee.Credentials;
 @Path("/credentials")
 public class CredentialService {
 
-    @Inject CredentialsManager credentialsManager;
-    
-    @Path("/{id}")
+    @Inject
+    CredentialsManager credentialsManager;
+
+    @Path("/{username}")
     @GET
     @Produces("application/json")
-    public Credentials find(@PathParam("id") Integer empId) {
-        
+    public Credentials find(@PathParam("username") String userName) {
+
         Credentials cred;
         try {
-            cred = credentialsManager.find(empId);
-        } catch (SQLException e) {
+            cred = credentialsManager.find(userName);
+        } catch (final SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
@@ -40,33 +41,32 @@ public class CredentialService {
         }
         return cred;
     }
-    
-    
+
     @POST
     @Consumes("application/json")
     public Response insert(Credentials credentials) {
         try {
             credentialsManager.insert(credentials);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             return Response.serverError().build();
         }
         return Response.created(URI.create("/credentials/" + credentials.getEmpNumber())).build();
     }
-    
+
     @Path("/{id}")
     @PATCH
     @Consumes("application/json")
     public Response merge(Credentials credentials, @PathParam("id") Integer empId) {
         try {
             credentialsManager.merge(credentials, empId);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             return Response.serverError().build();
         }
         return Response.noContent().build();
     }
-    
+
 }

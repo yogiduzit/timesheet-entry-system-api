@@ -6,7 +6,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,9 +76,8 @@ public class TimesheetRowManager implements Serializable {
                 }
             }
         } catch (final SQLException ex) {
-            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
-            return null;
+            throw ex;
         }
         return timesheetRows;
     }
@@ -135,12 +133,9 @@ public class TimesheetRowManager implements Serializable {
                     connection.close();
                 }
             }
-        } catch (final SQLIntegrityConstraintViolationException ex) {
+        } catch (final SQLException ex) {
             ex.printStackTrace();
             throw ex;
-        } catch (final SQLException ex) {
-            System.out.println("Error in find" + TAG);
-            ex.printStackTrace();
         }
     }
 
@@ -189,12 +184,10 @@ public class TimesheetRowManager implements Serializable {
                     connection.close();
                 }
             }
-        } catch (final SQLIntegrityConstraintViolationException ex) {
-            ex.printStackTrace();
-            throw ex;
         } catch (final SQLException ex) {
             System.out.println("Error in find" + TAG);
             ex.printStackTrace();
+            throw ex;
         }
     }
 

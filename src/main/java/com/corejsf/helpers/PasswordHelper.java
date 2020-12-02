@@ -5,6 +5,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
+import org.apache.commons.codec.binary.Hex;
+
 public class PasswordHelper {
     private static final String ALGORITHM = "SHA-256";
 
@@ -28,8 +30,8 @@ public class PasswordHelper {
         return hashed;
     }
 
-    public boolean validate(byte[] expHash, String actualPwd) {
-        return MessageDigest.isEqual(expHash, encrypt(actualPwd));
+    public boolean validate(String expHash, String actualPwd) {
+        return expHash.equals(Hex.encodeHexString(encrypt(actualPwd)));
     }
 
 }
