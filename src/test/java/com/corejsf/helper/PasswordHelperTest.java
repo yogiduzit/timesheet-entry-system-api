@@ -1,6 +1,9 @@
 package com.corejsf.helper;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.security.NoSuchAlgorithmException;
 
 import org.junit.jupiter.api.Test;
 
@@ -10,10 +13,20 @@ public class PasswordHelperTest {
 
     @Test
     public void verifyPassword() {
+        PasswordHelper helper = null;
+        try {
+            helper = new PasswordHelper();
+        } catch (final NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        if (helper == null) {
+            fail("No such algorithm");
+            return;
+        }
         final String password = "fbnjkfsd@!1fds";
-        final String hash = PasswordHelper.encrypt(password);
+        final byte[] hash = helper.encrypt(password);
 
-        assertTrue(PasswordHelper.validate(hash, password));
+        assertTrue(helper.validate(hash, password));
     }
 
 }

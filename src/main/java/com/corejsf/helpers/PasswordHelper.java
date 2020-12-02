@@ -1,31 +1,35 @@
 package com.corejsf.helpers;
 
-import de.mkammerer.argon2.Argon2;
-import de.mkammerer.argon2.Argon2Factory;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 public class PasswordHelper {
-    private static final Argon2 argon2 = Argon2Factory.create();
+    private static final String ALGORITHM = "SHA-256";
 
-    private static final int MEMORY = 65536;
-    private static final int ITERATIONS = 2;
-    private static final int THREADS = 1;
+    private final MessageDigest digest;
 
-    public static String encrypt(String password) {
-        final char[] pwd = password.toCharArray();
+    public PasswordHelper() throws NoSuchAlgorithmException {
+        digest = MessageDigest.getInstance(ALGORITHM);
+    }
 
-        String hashed = "";
+    public byte[] encrypt(String password) {
+        final byte[] pwd = password.getBytes(StandardCharsets.UTF_8);
+
+        byte[] hashed = new byte[] {};
         try {
             // Hash password
-            hashed = argon2.hash(ITERATIONS, MEMORY, THREADS, pwd);
+            hashed = digest.digest(pwd);
         } finally {
             // Wipe confidential data
-            argon2.wipeArray(pwd);
+            Arrays.fill(pwd, (byte) 0);
         }
         return hashed;
     }
 
-    public static boolean validate(String expHash, String actualPwd) {
-        return argon2.verify(expHash, actualPwd.toCharArray());
+    public boolean validate(byte[] expHash, String actualPwd) {
+        return MessageDigest.isEqual(expHash, encrypt(actualPwd));
     }
 
 }

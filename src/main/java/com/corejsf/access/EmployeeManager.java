@@ -1,10 +1,10 @@
 package com.corejsf.access;
 
 import java.io.Serializable;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLDataException;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
@@ -12,13 +12,11 @@ import java.util.ArrayList;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ConversationScoped;
-import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.mail.AuthenticationFailedException;
 import javax.sql.DataSource;
 
-import com.corejsf.model.employee.Credentials;
+import com.corejsf.helpers.PasswordHelper;
 import com.corejsf.model.employee.Employee;
 
 @Named("employeeManager")
@@ -45,6 +43,17 @@ public class EmployeeManager implements Serializable {
      * Provides access to the admin table in the datasource
      */
     private AdminManager adminManager;
+
+    private PasswordHelper passwordHelper;
+
+    public EmployeeManager() {
+        try {
+            passwordHelper = new PasswordHelper();
+        } catch (final NoSuchAlgorithmException e) {
+            passwordHelper = null;
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Finds an employee by their username
@@ -280,76 +289,5 @@ public class EmployeeManager implements Serializable {
 
         final Employee[] subarray = new Employee[employees.size()];
         return employees.toArray(subarray);
-    }
-
-    /**
-     * Verifies if the credentials of an employee match
-     *
-     * @param employee    the employee to be authenticated
-     * @param credentials credentials of the authenticating employee
-     * @return true, if credentials match
-     * @return false, otherwise
-     * @throws AuthenticationFailedException, if credentials don't match
-     * @throws SQLException
-     */
-//    public boolean verifyUser(Employee employee, Credentials credentials)
-//            throws AuthenticationFailedException, SQLException {
-//        if (employee == null || credentials == null) {
-//            return false;
-//        }
-//        final Credentials found = credentialsManager.find(employee.getEmpNumber());
-//        if (found == null) {
-//            throw new AuthenticationFailedException(msgProvider.getValue("error.authentication.unknownEmployee"));
-//        }
-//        if (!credentials.equals(found)) {
-//            throw new AuthenticationFailedException(msgProvider.getValue("error.authentication.wrongCredentials"));
-//        }
-//        return true;
-//    }
-
-    /**
-     * Gets the current employee
-     *
-     * @return Employee POJO
-     * @throws SQLException
-     */
-    public Employee getCurrentEmployee() throws SQLException {
-        final FacesContext context = FacesContext.getCurrentInstance();
-        final String username = (String) context.getExternalContext().getSessionMap().get("emp_no");
-        if (username == null) {
-            return null;
-        }
-        Employee current;
-        try {
-            current = find(username);
-        } catch (final SQLException e) {
-            throw new SQLException(e.getCause());
-        }
-        return current;
-    }
-
-    /**
-     * Checks if the current employee is an admin
-     *
-     * @return true, if admin is logged in
-     * @return false, otherwise
-     * @throws SQLException
-     */
-    public boolean isAdminLogin() throws SQLException {
-        final FacesContext context = FacesContext.getCurrentInstance();
-        final Boolean adminLogin = (Boolean) context.getExternalContext().getSessionMap().get("admin");
-        if (adminLogin != null) {
-            return adminLogin;
-        }
-        final Employee currEmployee = getCurrentEmployee();
-        if (currEmployee == null) {
-            return false;
-        }
-        final Employee admin = adminManager.find();
-        if (currEmployee.getUsername().equals(admin.getUsername())) {
-            context.getExternalContext().getSessionMap().put("admin", true);
-            return true;
-        }
-        return false;
     }
 }

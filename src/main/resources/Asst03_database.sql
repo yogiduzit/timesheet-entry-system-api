@@ -30,8 +30,13 @@ CREATE TABLE Admins(
 DROP TABLE IF EXISTS Credentials;
 CREATE TABLE Credentials(
     EmpNo INT(5) NOT NULL UNIQUE,
+<<<<<<< HEAD
     EmpUserName VARCHAR(20) NOT NULL UNIQUE,
     EmpPassword BINARY(32) NOT NULL,
+=======
+    EmpUserName VARCHAR(200) NOT NULL UNIQUE,
+    EmpPassword BLOB NOT NULL,
+>>>>>>> eec3253... Improved encryption
     CONSTRAINT FKCredentialEmpNo
         FOREIGN KEY (EmpNo)
             REFERENCES Employees(EmpNo)

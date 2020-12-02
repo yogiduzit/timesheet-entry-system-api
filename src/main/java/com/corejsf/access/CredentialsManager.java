@@ -4,6 +4,8 @@
 package com.corejsf.access;
 
 import java.io.Serializable;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,7 +16,9 @@ import javax.annotation.Resource;
 import javax.enterprise.context.ConversationScoped;
 import javax.inject.Named;
 import javax.sql.DataSource;
+import javax.sql.rowset.serial.SerialBlob;
 
+import com.corejsf.helpers.PasswordHelper;
 import com.corejsf.model.employee.Credentials;
 
 /**
@@ -29,6 +33,7 @@ import com.corejsf.model.employee.Credentials;
 public class CredentialsManager implements Serializable {
 
     private static String TAG = "Credential";
+    private PasswordHelper passwordHelper;
 
     /**
      * Variable for implementing Serialiable
@@ -40,6 +45,15 @@ public class CredentialsManager implements Serializable {
      */
     @Resource(mappedName = "java:jboss/datasources/MySQLDS")
     private DataSource dataSource;
+
+    public CredentialsManager() {
+        try {
+            passwordHelper = new PasswordHelper();
+        } catch (final NoSuchAlgorithmException e) {
+            passwordHelper = null;
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Method to get the credentials by employee number
@@ -60,8 +74,9 @@ public class CredentialsManager implements Serializable {
                     stmt.setInt(1, empNumber);
                     final ResultSet result = stmt.executeQuery();
                     if (result.next()) {
-                        final Credentials credentials = new Credentials(result.getString("EmpUserName"),
-                                result.getString("EmpPassword"));
+                        final Blob blob = result.getBlob("EmpPassword");
+                        final String password = new String(blob.getBytes(1L, Long.valueOf(blob.length()).intValue()));
+                        final Credentials credentials = new Credentials(result.getString("EmpUserName"), password);
                         credentials.setEmpNumber(result.getInt("EmpNo"));
                         return credentials;
                     }
@@ -135,7 +150,8 @@ public class CredentialsManager implements Serializable {
                     stmt = connection.prepareStatement("INSERT INTO Credentials VALUES(?, ?, ?)");
                     stmt.setInt(EmpNo, credentials.getEmpNumber());
                     stmt.setString(EmpUserName, credentials.getUsername());
-                    stmt.setString(EmpPassword, credentials.getPassword());
+                    final Blob blob = new SerialBlob(passwordHelper.encrypt(credentials.getPassword()));
+                    stmt.setBlob(EmpPassword, blob);
 
                     stmt.executeUpdate();
                 } finally {
@@ -178,7 +194,8 @@ public class CredentialsManager implements Serializable {
                             "UPDATE Credentials " + "SET EmpUserName=?, EmpPassword=? " + "WHERE EmpNo = ?");
                     stmt.setInt(EmpNo, id);
                     stmt.setString(EmpUserName, credentials.getUsername());
-                    stmt.setString(EmpPassword, credentials.getPassword());
+                    final Blob blob = new SerialBlob(passwordHelper.encrypt(credentials.getPassword()));
+                    stmt.setBlob(EmpPassword, blob);
 
                     stmt.executeUpdate();
                 } finally {
