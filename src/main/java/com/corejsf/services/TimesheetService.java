@@ -25,8 +25,15 @@ public class TimesheetService {
     
     @GET
     @Produces("application/json")
-    public List<Timesheet> getTimesheets() throws SQLException {
-        final List<Timesheet> timesheets = timesheetManager.getTimesheets();
+    public List<Timesheet> getTimesheets() {
+        List<Timesheet> timesheets;
+        try {
+            timesheets = timesheetManager.getTimesheets();
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
         if (timesheets == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
@@ -36,8 +43,15 @@ public class TimesheetService {
     @Path("/{id}")
     @GET
     @Produces("application/json")
-    public List<Timesheet> getTimesheets(@PathParam("id") Integer empNo) throws SQLException {
-        final List<Timesheet> timesheets = timesheetManager.getTimesheets(empNo);
+    public List<Timesheet> getTimesheets(@PathParam("id") Integer empNo) {
+        List<Timesheet> timesheets;
+        try {
+            timesheets = timesheetManager.getTimesheets(empNo);
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
         if (timesheets == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
@@ -46,16 +60,28 @@ public class TimesheetService {
     
     @POST
     @Consumes("application/json")
-    public Response insert(Timesheet timesheet) throws SQLException {
-        timesheetManager.insert(timesheet);
+    public Response insert(Timesheet timesheet) {
+        try {
+            timesheetManager.insert(timesheet);
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return Response.serverError().build();
+        }
         return Response.created(URI.create("/timesheets/" + timesheet.getId())).build();
     }
     
     @Path("/{id}")
     @PATCH
     @Consumes("application/json")
-    public Response merge(Timesheet timesheet, @PathParam("id") Integer timesheetId) throws SQLException {        
-        timesheetManager.merge(timesheet, timesheetId);
+    public Response merge(Timesheet timesheet, @PathParam("id") Integer timesheetId) {        
+        try {
+            timesheetManager.merge(timesheet, timesheetId);
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return Response.serverError().build();
+        }
         return Response.noContent().build();
     }
     

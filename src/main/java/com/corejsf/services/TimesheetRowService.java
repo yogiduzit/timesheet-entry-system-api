@@ -27,8 +27,15 @@ public class TimesheetRowService {
     @Path("/{id}")
     @GET
     @Produces("application/json")
-    public ArrayList<TimesheetRow> getTimesheetRows(@PathParam("id") Integer timesheetId) throws SQLException {
-        final ArrayList<TimesheetRow> timesheetRow = timesheetRowManager.getTimesheetRows(timesheetId);
+    public ArrayList<TimesheetRow> getTimesheetRows(@PathParam("id") Integer timesheetId) {
+        ArrayList<TimesheetRow> timesheetRow;
+        try {
+            timesheetRow = timesheetRowManager.getTimesheetRows(timesheetId);
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
         if (timesheetRow == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
@@ -38,16 +45,28 @@ public class TimesheetRowService {
     @Path("/{id}")
     @POST
     @Consumes("application/json")
-    public Response insert(@PathParam("id") Integer timesheetId, List<TimesheetRow> timesheetRows) throws SQLException {
-        timesheetRowManager.create(timesheetId, timesheetRows);
+    public Response insert(@PathParam("id") Integer timesheetId, List<TimesheetRow> timesheetRows) {
+        try {
+            timesheetRowManager.create(timesheetId, timesheetRows);
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return Response.serverError().build();
+        }
         return Response.created(URI.create("/rows/" + timesheetId)).build();
     }
     
     @Path("/{id}")
     @PATCH
     @Consumes("application/json")
-    public Response update(@PathParam("id") Integer timesheetId, List<TimesheetRow> timesheetRows) throws SQLException {
-        timesheetRowManager.update(timesheetId, timesheetRows);
+    public Response update(@PathParam("id") Integer timesheetId, List<TimesheetRow> timesheetRows) {
+        try {
+            timesheetRowManager.update(timesheetId, timesheetRows);
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return Response.serverError().build();
+        }
         return Response.noContent().build();
     }
     

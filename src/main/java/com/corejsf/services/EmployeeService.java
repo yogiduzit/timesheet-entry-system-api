@@ -22,52 +22,83 @@ import com.corejsf.model.employee.Employee;
 
 @Path("/employees")
 public class EmployeeService {
-    
+
     @Inject
     private EmployeeManager employeeManager;
-    
+
     @Path("/{id}")
     @GET
     @Produces("application/json")
-    public Employee find(@PathParam("id") Integer empId) throws SQLException {
-        final Employee employee = employeeManager.find(empId);
+    public Employee find(@PathParam("id") Integer empId) {
+        Employee employee;
+        try {
+            employee = employeeManager.find(empId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+
+        }
         if (employee == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         return employee;
     }
-    
+
     @GET
     @Produces("application/json")
-    public Employee[] getAll() throws SQLException {
-        final Employee[] employees= employeeManager.getAll();
+    public Employee[] getAll()  {
+        Employee[] employees;
+        try {
+            employees = employeeManager.getAll();
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
         if (employees == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         return employees;
     }
-    
+
     @POST
     @Consumes("application/json")
-    public Response persist(Employee employee) throws SQLException {
-        employeeManager.persist(employee);
+    public Response persist(Employee employee) {
+        try {
+            employeeManager.persist(employee);
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return Response.serverError().build();
+        }
         return Response.created(URI.create("/employees/" + employee.getEmpNumber())).build();
     }
-    
+
     @Path("/{id}")
     @PATCH
     @Consumes("application/json")
-    public Response merge(Employee employee, @PathParam("id") Integer empId) throws SQLException {
-        employeeManager.merge(employee, empId);
+    public Response merge(Employee employee, @PathParam("id") Integer empId) {
+        try {
+            employeeManager.merge(employee, empId);
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return Response.serverError().build();
+        }
         return Response.noContent().build();
     }
-    
+
     @Path("/{id}")
     @DELETE
-    public Response remove(Employee employee, @PathParam("id") Integer empId) throws SQLException {
-        employeeManager.remove(employee, empId);
+    public Response remove(Employee employee, @PathParam("id") Integer empId) {
+        try {
+            employeeManager.remove(employee, empId);
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return Response.serverError().build();
+        }
         return Response.ok().build();
     }
-    
 
 }

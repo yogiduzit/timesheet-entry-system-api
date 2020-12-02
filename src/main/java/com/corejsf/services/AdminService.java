@@ -1,6 +1,7 @@
 package com.corejsf.services;
 
 import java.sql.SQLDataException;
+import java.sql.SQLException;
 
 import javax.ejb.Local;
 import javax.ejb.Stateless;
@@ -23,7 +24,7 @@ public class AdminService {
     
     @GET
     @Produces("application/json")
-    public Employee find() throws SQLDataException {
+    public Employee find() {
         final Employee admin = adminManager.find();
         if (admin == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
