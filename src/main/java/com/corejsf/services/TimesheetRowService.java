@@ -1,5 +1,6 @@
 package com.corejsf.services;
 
+import java.net.URI;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,14 +38,17 @@ public class TimesheetRowService {
     @Path("/{id}")
     @POST
     @Consumes("application/json")
-    public void insert(@PathParam("id") Integer timesheetId, List<TimesheetRow> timesheetRows) throws SQLException {
+    public Response insert(@PathParam("id") Integer timesheetId, List<TimesheetRow> timesheetRows) throws SQLException {
         timesheetRowManager.create(timesheetId, timesheetRows);
+        return Response.created(URI.create("/rows/" + timesheetId)).build();
     }
     
     @Path("/{id}")
     @PATCH
-    public void update(@PathParam("id") Integer timesheetId, List<TimesheetRow> timesheetRows) throws SQLException {
+    @Consumes("application/json")
+    public Response update(@PathParam("id") Integer timesheetId, List<TimesheetRow> timesheetRows) throws SQLException {
         timesheetRowManager.update(timesheetId, timesheetRows);
+        return Response.noContent().build();
     }
     
 

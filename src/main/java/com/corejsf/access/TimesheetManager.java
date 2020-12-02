@@ -212,10 +212,10 @@ public class TimesheetManager implements Serializable {
                 connection.setAutoCommit(false);
                 try {
                     stmt = connection.prepareStatement(
-                            "UPDATE Timesheets " + "SET EmpNo = ?, EndWeek = ? " + "WHERE TimesheetID = '" + id + "'");
+                            "UPDATE Timesheets " + "SET EmpNo = ?, EndWeek = ? " + "WHERE TimesheetID = ?");
                     stmt.setInt(EmpNo, timesheet.getEmployee().getEmpNumber());
                     stmt.setDate(EndWeek, java.sql.Date.valueOf(timesheet.getEndWeek()));
-                    stmt.setInt(TimesheetID, timesheet.getId());
+                    stmt.setInt(TimesheetID, id);
                     stmt.executeUpdate();
                     connection.commit();
                     rowManager.update(timesheet.getId(), timesheet.getDetails());
