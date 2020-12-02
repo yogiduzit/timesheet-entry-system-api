@@ -143,8 +143,8 @@ public class CredentialsManager implements Serializable {
                 connection = dataSource.getConnection();
                 try {
                     stmt = connection.prepareStatement(
-                            "UPDATE Credentials " + "SET EmpUserName=?, EmpPassword=? " + "WHERE EmpNo = '" + id + "'");
-                    stmt.setInt(EmpNo, credentials.getEmpNumber());
+                            "UPDATE Credentials " + "SET EmpUserName=?, EmpPassword=? " + "WHERE EmpNo = ?");
+                    stmt.setInt(EmpNo, id);
                     stmt.setString(EmpUserName, credentials.getUsername());
                     stmt.setString(EmpPassword, credentials.getPassword());
 

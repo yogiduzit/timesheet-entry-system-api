@@ -17,7 +17,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
 
-import com.corejsf.messages.MessageProvider;
 import com.corejsf.model.timesheet.TimesheetRow;
 
 @Named("rowManager")
@@ -43,11 +42,6 @@ public class TimesheetRowManager implements Serializable {
     @Resource(mappedName = "java:jboss/datasources/MySQLDS")
     private DataSource dataSource;
 
-    @Inject
-    /**
-     * Provides access to messages present in the message bundle
-     */
-    private MessageProvider msgProvider;
 
     /**
      * Gets all timesheet rows associated with a timesheet
@@ -85,8 +79,9 @@ public class TimesheetRowManager implements Serializable {
                 }
             }
         } catch (final SQLException ex) {
+            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.getAll", new Object[] { TAG }));
+            return null;
         }
         return timesheetRows;
     }
@@ -139,8 +134,8 @@ public class TimesheetRowManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
+            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.create", new Object[] { TAG }));
         }
     }
 
@@ -193,8 +188,8 @@ public class TimesheetRowManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
+            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.edit", new Object[] { TAG }));
         }
     }
 

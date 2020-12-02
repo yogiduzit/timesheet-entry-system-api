@@ -172,7 +172,7 @@ public class EmployeeManager implements Serializable {
      * @param employee, POJO representing the employee record
      * @throws SQLException
      */
-    public void merge(Employee employee, int id) throws SQLException {
+    public void merge(Employee employee, Integer id) throws SQLException {
         final int empName = 1;
         final int empUsername = 2;
         final int empNo = 3;
@@ -183,10 +183,10 @@ public class EmployeeManager implements Serializable {
                 connection = dataSource.getConnection();
                 try {
                     stmt = connection.prepareStatement(
-                            "UPDATE Employees " + "SET EmpName = ?, EmpUserName = ? " + "WHERE EmpNo = '" + id + "'");
+                            "UPDATE Employees " + "SET EmpName = ?, EmpUserName = ? " + "WHERE EmpNo = ?");
                     stmt.setString(empName, employee.getFullName());
                     stmt.setString(empUsername, employee.getUsername());
-                    stmt.setInt(empNo, employee.getEmpNumber());
+                    stmt.setInt(empNo, id);
                     stmt.executeUpdate();
                 } finally {
                     if (stmt != null) {
@@ -213,15 +213,15 @@ public class EmployeeManager implements Serializable {
      * @param employee, Employee POJO
      * @throws SQLException
      */
-    public void remove(Employee employee, int id) throws SQLException {
+    public void remove(Employee employee, Integer id) throws SQLException {
         Connection connection = null;
         PreparedStatement stmt = null;
         try {
             try {
                 connection = dataSource.getConnection();
                 try {
-                    stmt = connection.prepareStatement("DELETE FROM Employees WHERE EmpNo = '" + id + "'");
-                    stmt.setInt(1, employee.getEmpNumber());
+                    stmt = connection.prepareStatement("DELETE FROM Employees WHERE EmpNo = ?");
+                    stmt.setInt(1, id);
                     stmt.executeUpdate();
                 } finally {
                     if (stmt != null) {

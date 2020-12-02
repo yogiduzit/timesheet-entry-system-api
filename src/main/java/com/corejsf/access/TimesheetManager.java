@@ -17,7 +17,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
 
-import com.corejsf.messages.MessageProvider;
 import com.corejsf.model.employee.Employee;
 import com.corejsf.model.timesheet.Timesheet;
 import com.corejsf.model.timesheet.TimesheetRow;
@@ -51,8 +50,6 @@ public class TimesheetManager implements Serializable {
     @Inject
     private EmployeeManager empManager;
 
-    @Inject
-    private MessageProvider msgProvider;
 
     /**
      * Getting the Timesheets.
@@ -92,8 +89,9 @@ public class TimesheetManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
+            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.getAll", new Object[] { TAG }));
+            return null;
         }
         return timesheets;
     }
@@ -137,8 +135,9 @@ public class TimesheetManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
+            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.getAll", new Object[] { TAG }));
+            return null;
         }
         return timesheets;
     }
@@ -189,8 +188,8 @@ public class TimesheetManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
+            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.create", new Object[] { TAG }));
         }
         return timesheetId;
     }
@@ -237,8 +236,8 @@ public class TimesheetManager implements Serializable {
             ex.printStackTrace();
             throw ex;
         } catch (final SQLException ex) {
+            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.edit", new Object[] { TAG }));
         }
     }
 }
