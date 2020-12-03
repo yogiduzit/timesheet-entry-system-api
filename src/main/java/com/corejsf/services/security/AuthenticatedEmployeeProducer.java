@@ -25,6 +25,7 @@ public class AuthenticatedEmployeeProducer {
     public void handleAuthenticationEvent(@Observes @AuthenticatedEmployee String username) {
         try {
             authenticatedEmployee = empManager.find(username);
+            authenticatedEmployee.setRole(Role.EMPLOYEE);
         } catch (final SQLException e) {
             e.printStackTrace();
         }

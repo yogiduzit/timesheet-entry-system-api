@@ -13,7 +13,10 @@ import javax.ws.rs.core.Response;
 
 import com.corejsf.access.AdminManager;
 import com.corejsf.model.employee.Employee;
+import com.corejsf.services.security.Role;
+import com.corejsf.services.security.annotations.Secured;
 
+@Secured({ Role.ADMIN })
 @Path("/admins")
 @Stateless
 @Local

@@ -16,6 +16,7 @@ import javax.enterprise.context.ConversationScoped;
 import javax.inject.Named;
 import javax.sql.DataSource;
 
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
 import com.corejsf.helpers.PasswordHelper;
@@ -62,8 +63,9 @@ public class CredentialsManager implements Serializable {
      * @return credentials, username and password of the employee
      * @return null, if the emp does not exist
      * @throws SQLException
+     * @throws DecoderException
      */
-    public Credentials findByToken(String token) throws SQLException {
+    public Credentials findByToken(String token) throws SQLException, DecoderException {
         Connection connection = null;
         PreparedStatement stmt = null;
         try {
@@ -71,7 +73,7 @@ public class CredentialsManager implements Serializable {
                 connection = dataSource.getConnection();
                 try {
                     stmt = connection.prepareStatement("SELECT * FROM Credentials WHERE EmpToken = ?");
-                    stmt.setBytes(1, token.getBytes());
+                    stmt.setBytes(1, Hex.decodeHex(token));
                     final ResultSet result = stmt.executeQuery();
                     if (result.next()) {
                         final String password = Hex.encodeHexString(result.getBytes("EmpToken"));

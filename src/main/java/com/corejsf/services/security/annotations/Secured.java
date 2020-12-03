@@ -12,6 +12,8 @@ import java.lang.annotation.Target;
 
 import javax.ws.rs.NameBinding;
 
+import com.corejsf.services.security.Role;
+
 @NameBinding
 @Retention(RUNTIME)
 @Target({ TYPE, METHOD })
@@ -20,5 +22,5 @@ import javax.ws.rs.NameBinding;
  *
  */
 public @interface Secured {
-
+    Role[] value() default {};
 }

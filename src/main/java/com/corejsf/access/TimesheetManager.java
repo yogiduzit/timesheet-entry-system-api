@@ -132,6 +132,44 @@ public class TimesheetManager implements Serializable {
     }
 
     /**
+     * Getting all the timesheets for one employee.
+     *
+     * @throws SQLException
+     */
+    public Timesheet find(Integer timesheetId) throws SQLException {
+        Timesheet timesheet = null;
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        try {
+            try {
+                connection = dataSource.getConnection();
+                try {
+                    stmt = connection.prepareStatement("SELECT * FROM Timesheets WHERE TimesheetID = ?");
+                    stmt.setInt(1, timesheetId);
+                    final ResultSet result = stmt.executeQuery();
+                    final int id = result.getInt("TimesheetID");
+                    final List<TimesheetRow> rows = rowManager.getTimesheetRows(id);
+                    final Employee employee = empManager.find(result.getInt("EmpNo"));
+                    timesheet = new Timesheet(employee, result.getDate("EndWeek").toLocalDate(), rows);
+                    timesheet.setId(id);
+                } finally {
+                    if (stmt != null) {
+                        stmt.close();
+                    }
+                }
+            } finally {
+                if (connection != null) {
+                    connection.close();
+                }
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        return timesheet;
+    }
+
+    /**
      * Creating a Timesheet object and adding it to the collection.
      *
      * @throws SQLException

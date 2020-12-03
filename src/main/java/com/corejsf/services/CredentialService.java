@@ -16,6 +16,10 @@ import javax.ws.rs.core.Response;
 
 import com.corejsf.access.CredentialsManager;
 import com.corejsf.model.employee.Credentials;
+import com.corejsf.model.employee.Employee;
+import com.corejsf.services.security.Role;
+import com.corejsf.services.security.annotations.AuthenticatedEmployee;
+import com.corejsf.services.security.annotations.Secured;
 
 @Path("/credentials")
 public class CredentialService {
@@ -23,11 +27,19 @@ public class CredentialService {
     @Inject
     CredentialsManager credentialsManager;
 
+    @Inject
+    @AuthenticatedEmployee
+    private Employee authEmployee;
+
+    @Secured({ Role.ADMIN, Role.EMPLOYEE })
     @Path("/{username}")
     @GET
     @Produces("application/json")
     public Credentials find(@PathParam("username") String userName) {
-
+        final Response errorRes = checkErrors(authEmployee, userName);
+        if (errorRes != null) {
+            throw new WebApplicationException(errorRes.getStatus());
+        }
         Credentials cred;
         try {
             cred = credentialsManager.find(userName);
@@ -42,6 +54,7 @@ public class CredentialService {
         return cred;
     }
 
+    @Secured({ Role.ADMIN })
     @POST
     @Consumes("application/json")
     public Response insert(Credentials credentials) {
@@ -55,10 +68,15 @@ public class CredentialService {
         return Response.created(URI.create("/credentials/" + credentials.getEmpNumber())).build();
     }
 
+    @Secured({ Role.ADMIN, Role.EMPLOYEE })
     @Path("/{id}")
     @PATCH
     @Consumes("application/json")
     public Response merge(Credentials credentials, @PathParam("id") Integer empId) {
+        final Response errorRes = checkErrors(authEmployee, empId);
+        if (errorRes != null) {
+            return errorRes;
+        }
         try {
             credentialsManager.merge(credentials, empId);
         } catch (final SQLException e) {
@@ -67,6 +85,20 @@ public class CredentialService {
             return Response.serverError().build();
         }
         return Response.noContent().build();
+    }
+
+    private static Response checkErrors(Employee authEmployee, int empId) {
+        if (authEmployee.getRole() == Role.EMPLOYEE && !(authEmployee.getEmpNumber() == empId)) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        return null;
+    }
+
+    private static Response checkErrors(Employee authEmployee, String username) {
+        if (authEmployee.getRole() == Role.EMPLOYEE && !(authEmployee.getUsername().equals(username))) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        return null;
     }
 
 }

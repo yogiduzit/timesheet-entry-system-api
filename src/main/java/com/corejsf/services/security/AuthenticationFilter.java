@@ -87,5 +87,6 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         if (stored == null) {
             throw new AuthenticationException();
         }
+        userAuthenticatedEvent.fire(stored.getUsername());
     }
 }

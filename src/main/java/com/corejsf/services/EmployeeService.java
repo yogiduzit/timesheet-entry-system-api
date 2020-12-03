@@ -3,8 +3,6 @@ package com.corejsf.services;
 import java.net.URI;
 import java.sql.SQLException;
 
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -19,6 +17,8 @@ import javax.ws.rs.core.Response;
 
 import com.corejsf.access.EmployeeManager;
 import com.corejsf.model.employee.Employee;
+import com.corejsf.services.security.Role;
+import com.corejsf.services.security.annotations.AuthenticatedEmployee;
 import com.corejsf.services.security.annotations.Secured;
 
 @Path("/employees")
@@ -27,18 +27,24 @@ public class EmployeeService {
     @Inject
     private EmployeeManager employeeManager;
 
-    @PermitAll
+    @Inject
+    @AuthenticatedEmployee
+    private Employee authEmployee;
+
+    @Secured({ Role.ADMIN, Role.EMPLOYEE })
     @GET
     @Path("/{id}")
     @Produces("application/json")
     public Employee find(@PathParam("id") Integer empId) {
+        if (authEmployee.getRole() == Role.EMPLOYEE && authEmployee.getEmpNumber() != empId) {
+            throw new WebApplicationException(Response.Status.FORBIDDEN);
+        }
         Employee employee;
         try {
             employee = employeeManager.find(empId);
         } catch (final SQLException e) {
             e.printStackTrace();
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-
         }
         if (employee == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -46,7 +52,7 @@ public class EmployeeService {
         return employee;
     }
 
-    @Secured
+    @Secured({ Role.ADMIN })
     @GET
     @Produces("application/json")
     public Employee[] getAll() {
@@ -63,41 +69,43 @@ public class EmployeeService {
         return employees;
     }
 
-    @RolesAllowed("ADMIN")
+    @Secured({ Role.ADMIN })
     @POST
     @Consumes("application/json")
     public Response persist(Employee employee) {
         try {
             employeeManager.persist(employee);
         } catch (final SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return Response.serverError().build();
         }
         return Response.created(URI.create("/employees/" + employee.getEmpNumber())).build();
     }
 
+    @Secured({ Role.ADMIN, Role.EMPLOYEE })
     @Path("/{id}")
     @PATCH
     @Consumes("application/json")
     public Response merge(Employee employee, @PathParam("id") Integer empId) {
+        if (authEmployee.getRole() == Role.EMPLOYEE && authEmployee.getEmpNumber() != empId) {
+            throw new WebApplicationException(Response.Status.FORBIDDEN);
+        }
         try {
             employeeManager.merge(employee, empId);
         } catch (final SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return Response.serverError().build();
         }
         return Response.noContent().build();
     }
 
+    @Secured({ Role.ADMIN })
     @Path("/{id}")
     @DELETE
     public Response remove(Employee employee, @PathParam("id") Integer empId) {
         try {
             employeeManager.remove(employee, empId);
         } catch (final SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return Response.serverError().build();
         }

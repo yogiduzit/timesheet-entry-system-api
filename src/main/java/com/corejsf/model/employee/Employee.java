@@ -1,5 +1,7 @@
 package com.corejsf.model.employee;
 
+import com.corejsf.services.security.Role;
+
 /**
  * This class represents one employee.
  *
@@ -19,6 +21,11 @@ public class Employee {
      * Represents the last name of the eployee
      */
     private String username;
+
+    /**
+     * Role of the employee
+     */
+    private Role role;
 
     /**
      * no parameter constructor
@@ -92,6 +99,20 @@ public class Employee {
      */
     public void setUsername(final String id) {
         username = id;
+    }
+
+    /**
+     * @return the role
+     */
+    public Role getRole() {
+        return role;
+    }
+
+    /**
+     * @param role the role to set
+     */
+    public void setRole(Role role) {
+        this.role = role;
     }
 
 }
