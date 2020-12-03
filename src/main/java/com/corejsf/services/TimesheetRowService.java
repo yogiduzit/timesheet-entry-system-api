@@ -72,11 +72,9 @@ public class TimesheetRowService {
         try {
             final Timesheet timesheet = timesheetManager.find(timesheetId);
             if (timesheet == null) {
-                return Response.status(Response.Status.NOT_FOUND).entity("Unable to find a timesheet to insert to")
-                        .build();
+                return Response.status(Response.Status.NOT_FOUND).entity("Unable to find a timesheet to insert to").build();
             } else if (timesheet.getEmployee().getEmpNumber() != authEmployee.getEmpNumber()) {
-                return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot modify another's user's timesheet")
-                        .build();
+                return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot modify another's user's timesheet").build();
             } else if (timesheet.getDetails().size() == Timesheet.DAYS_IN_WEEK) {
                 return Response.status(Response.Status.UNSUPPORTED_MEDIA_TYPE)
                         .entity("Cannot add more rows to a timesheet with 7 rows").build();
