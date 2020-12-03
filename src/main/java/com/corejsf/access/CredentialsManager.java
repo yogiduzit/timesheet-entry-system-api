@@ -190,7 +190,7 @@ public class CredentialsManager implements Serializable {
                 connection = dataSource.getConnection();
                 try {
                     stmt = connection.prepareStatement(
-                            "UPDATE Credentials " + "SET EmpUserName=?, EmpPassword=? " + "WHERE EmpNo = ?");
+                            "UPDATE Credentials " + "SET EmpUserName=?, EmpToken=? " + "WHERE EmpNo = ?");
                     stmt.setInt(EmpNo, id);
                     stmt.setString(EmpUserName, credentials.getUsername());
                     final byte[] token = passwordHelper.encrypt(credentials.getUsername() + credentials.getPassword());

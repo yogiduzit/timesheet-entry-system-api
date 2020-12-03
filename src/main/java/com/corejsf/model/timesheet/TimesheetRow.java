@@ -34,7 +34,7 @@ public class TimesheetRow implements java.io.Serializable {
     /** The WorkPackage. Must be a unique for a given projectID. */
     private String workPackage;
 
-    private String id;
+    private int id;
 
     /**
      * An array holding all the hours charged for each day of the week. Day 0 is
@@ -70,14 +70,14 @@ public class TimesheetRow implements java.io.Serializable {
     /**
      * @return the id
      */
-    public String getId() {
+    public int getId() {
         return id;
     }
 
     /**
      * @param id the id to set
      */
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 

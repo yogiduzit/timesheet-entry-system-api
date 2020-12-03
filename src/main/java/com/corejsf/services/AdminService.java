@@ -25,8 +25,10 @@ public class AdminService {
     @Inject
     AdminManager adminManager;
 
+    @Secured({ Role.ADMIN })
     @GET
     @Produces("application/json")
+    // Finds the admin user
     public Employee find() {
         Employee admin;
         try {

@@ -62,8 +62,10 @@ public class TimesheetRowManager implements Serializable {
                         final String hours = result.getString("HoursForWeek");
 
                         final BigDecimal[] weeklyHours = convertToWeeklyHours(hours);
-                        timesheetRows.add(new TimesheetRow(result.getInt("ProjectId"), result.getString("WorkPackage"),
-                                weeklyHours, result.getString("Notes")));
+                        final TimesheetRow row = new TimesheetRow(result.getInt("ProjectId"),
+                                result.getString("WorkPackage"), weeklyHours, result.getString("Notes"));
+                        row.setId(result.getInt(1));
+                        timesheetRows.add(row);
                     }
                 } finally {
                     if (stmt != null) {
@@ -121,7 +123,7 @@ public class TimesheetRowManager implements Serializable {
                     final int counter = 0;
                     final ResultSet rs = stmt.getGeneratedKeys();
                     while (rs.next()) {
-                        timesheetRows.get(counter).setId(rs.getString(1));
+                        timesheetRows.get(counter).setId(rs.getInt(1));
                     }
                 } finally {
                     if (stmt != null) {
@@ -134,6 +136,62 @@ public class TimesheetRowManager implements Serializable {
                 }
             }
         } catch (final SQLException ex) {
+            ex.printStackTrace();
+            throw ex;
+        }
+    }
+
+    /**
+     * Adds timesheetRows to a timesheet
+     *
+     * @param timesheetId,   the timesheet to add rows to
+     * @param timesheetRows, the rows to be added
+     * @throws SQLException
+     */
+    public void create(Integer timesheetId, TimesheetRow timesheetRow) throws SQLException {
+        final int TimesheetRowId = 1;
+        final int TimesheetID = 2;
+        final int ProjectID = 3;
+        final int WorkPackage = 4;
+        final int Notes = 5;
+        final int HoursForWeek = 6;
+
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        try {
+            try {
+                connection = dataSource.getConnection();
+                try {
+                    stmt = connection.prepareStatement("INSERT INTO TimesheetRows VALUES(?, ?, ?, ?, ?, ?)",
+                            Statement.RETURN_GENERATED_KEYS);
+                    if (timesheetRow.getWorkPackage() == null || timesheetRow.getWorkPackage().isEmpty()) {
+                        throw new IllegalArgumentException("Please enter all values");
+                    }
+                    stmt.setInt(TimesheetRowId, 1);
+                    stmt.setInt(TimesheetID, timesheetId);
+                    stmt.setInt(ProjectID, timesheetRow.getProjectID());
+                    stmt.setString(WorkPackage, timesheetRow.getWorkPackage());
+                    stmt.setString(Notes, timesheetRow.getNotes());
+                    stmt.setString(HoursForWeek, stringifyWeeklyHours(timesheetRow.getHoursForWeek()));
+                    stmt.executeUpdate();
+
+                    final ResultSet rs = stmt.getGeneratedKeys();
+                    if (rs.next()) {
+                        timesheetRow.setId(rs.getInt(1));
+                    }
+                } finally {
+                    if (stmt != null) {
+                        stmt.close();
+                    }
+                }
+            } finally {
+                if (connection != null) {
+                    connection.close();
+                }
+            }
+        } catch (
+
+        final SQLException ex) {
             ex.printStackTrace();
             throw ex;
         }
@@ -165,7 +223,7 @@ public class TimesheetRowManager implements Serializable {
                         if (timesheetRow.getWorkPackage() == null || timesheetRow.getWorkPackage().isEmpty()) {
                             continue;
                         }
-                        stmt.setString(TimesheetRowID, timesheetRow.getId());
+                        stmt.setInt(TimesheetRowID, timesheetRow.getId());
                         stmt.setInt(ProjectID, timesheetRow.getProjectID());
                         stmt.setString(WorkPackage, timesheetRow.getWorkPackage());
                         stmt.setString(Notes, timesheetRow.getNotes());
@@ -173,6 +231,54 @@ public class TimesheetRowManager implements Serializable {
                         stmt.addBatch();
                         stmt.clearParameters();
                     }
+                    stmt.executeBatch();
+                } finally {
+                    if (stmt != null) {
+                        stmt.close();
+                    }
+                }
+            } finally {
+                if (connection != null) {
+                    connection.close();
+                }
+            }
+        } catch (final SQLException ex) {
+            System.out.println("Error in find" + TAG);
+            ex.printStackTrace();
+            throw ex;
+        }
+    }
+
+    /**
+     * Updating a timesheetRow present in a timesheet
+     *
+     * @param timesheetId,   the timesheet whose rows need to be updated
+     * @param timesheetRows, the list containing the timesheet's rows
+     * @throws SQLException
+     */
+    public void update(Integer timesheetId, TimesheetRow timesheetRow) throws SQLException {
+        final int HoursForWeek = 1;
+        final int Notes = 2;
+        final int ProjectID = 3;
+        final int WorkPackage = 4;
+        final int TimesheetRowID = 5;
+
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        try {
+            try {
+                connection = dataSource.getConnection();
+                try {
+                    stmt = connection.prepareStatement("UPDATE TimesheetRows "
+                            + "SET HoursForWeek=?, Notes=?, ProjectID=?, WorkPackage=? " + "WHERE TimesheetRowID=?");
+                    if (timesheetRow.getWorkPackage() == null || timesheetRow.getWorkPackage().isEmpty()) {
+                        throw new IllegalArgumentException("Please enter all values");
+                    }
+                    stmt.setInt(TimesheetRowID, timesheetRow.getId());
+                    stmt.setInt(ProjectID, timesheetRow.getProjectID());
+                    stmt.setString(WorkPackage, timesheetRow.getWorkPackage());
+                    stmt.setString(Notes, timesheetRow.getNotes());
+                    stmt.setString(HoursForWeek, stringifyWeeklyHours(timesheetRow.getHoursForWeek()));
                     stmt.executeBatch();
                 } finally {
                     if (stmt != null) {
@@ -202,7 +308,12 @@ public class TimesheetRowManager implements Serializable {
         final BigDecimal[] weeklyHours = new BigDecimal[temp.length];
 
         for (int i = 0; i < weeklyHours.length; i++) {
-            weeklyHours[i] = BigDecimal.valueOf(Long.valueOf(temp[i]));
+            if (!temp[i].equals("null")) {
+                weeklyHours[i] = BigDecimal.valueOf(Long.valueOf(temp[i]));
+            } else {
+                weeklyHours[i] = BigDecimal.ZERO;
+            }
+
         }
         return weeklyHours;
     }

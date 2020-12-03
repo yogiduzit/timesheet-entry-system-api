@@ -147,11 +147,13 @@ public class TimesheetManager implements Serializable {
                     stmt = connection.prepareStatement("SELECT * FROM Timesheets WHERE TimesheetID = ?");
                     stmt.setInt(1, timesheetId);
                     final ResultSet result = stmt.executeQuery();
-                    final int id = result.getInt("TimesheetID");
-                    final List<TimesheetRow> rows = rowManager.getTimesheetRows(id);
-                    final Employee employee = empManager.find(result.getInt("EmpNo"));
-                    timesheet = new Timesheet(employee, result.getDate("EndWeek").toLocalDate(), rows);
-                    timesheet.setId(id);
+                    if (result.next()) {
+                        final int id = result.getInt("TimesheetID");
+                        final List<TimesheetRow> rows = rowManager.getTimesheetRows(id);
+                        final Employee employee = empManager.find(result.getInt("EmpNo"));
+                        timesheet = new Timesheet(employee, result.getDate("EndWeek").toLocalDate(), rows);
+                        timesheet.setId(id);
+                    }
                 } finally {
                     if (stmt != null) {
                         stmt.close();

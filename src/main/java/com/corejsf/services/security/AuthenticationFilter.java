@@ -35,12 +35,15 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
     @Inject
     @AuthenticatedEmployee
+    // Event to be fired on successful authentication
     private Event<String> userAuthenticatedEvent;
 
     @Inject
+    // Provides access to the credentials table
     private CredentialsManager credManager;
 
     @Override
+    // Filters requests and checks if user is authenticated
     public void filter(ContainerRequestContext requestContext) throws IOException {
 
         // Get the Authorization header from the request
@@ -63,6 +66,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         }
     }
 
+    // Checks if token exists on the header
     private boolean isTokenBasedAuthentication(String authorizationHeader) {
 
         // Check if the Authorization header is valid
@@ -72,6 +76,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
                 && authorizationHeader.toLowerCase().startsWith(AUTHENTICATION_SCHEME.toLowerCase() + " ");
     }
 
+    // Aborts the request
     private void abortWithUnauthorized(ContainerRequestContext requestContext) {
 
         // Abort the filter chain with a 401 status code response
@@ -80,6 +85,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
                 .header(HttpHeaders.WWW_AUTHENTICATE, AUTHENTICATION_SCHEME + " realm=\"" + REALM + "\"").build());
     }
 
+    // Validates the token
     private void validateToken(String token) throws Exception {
         // Check if the token was issued by the server and if it's not expired
         // Throw an Exception if the token is invalid

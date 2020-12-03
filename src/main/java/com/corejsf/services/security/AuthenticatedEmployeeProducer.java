@@ -22,6 +22,7 @@ public class AuthenticatedEmployeeProducer {
     @AuthenticatedEmployee
     private Employee authenticatedEmployee;
 
+    // Sets the authenticated employee in the database
     public void handleAuthenticationEvent(@Observes @AuthenticatedEmployee String username) {
         try {
             authenticatedEmployee = empManager.find(username);

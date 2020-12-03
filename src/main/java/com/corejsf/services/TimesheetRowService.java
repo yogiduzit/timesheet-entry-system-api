@@ -3,7 +3,6 @@ package com.corejsf.services;
 import java.net.URI;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -11,8 +10,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
@@ -39,10 +38,15 @@ public class TimesheetRowService {
     private Employee authEmployee;
 
     @Secured({ Role.ADMIN, Role.EMPLOYEE })
-    @Path("/{id}")
     @GET
     @Produces("application/json")
-    public ArrayList<TimesheetRow> getTimesheetRows(@PathParam("id") Integer timesheetId) {
+    /**
+     * Gets all the rows of a timesheet
+     *
+     * @param timesheetId, the timesheetId to get rows from
+     * @return list of timesheet rows
+     */
+    public ArrayList<TimesheetRow> getTimesheetRows(@QueryParam("timesheetId") Integer timesheetId) {
         ArrayList<TimesheetRow> timesheetRow;
         try {
             final Response errorRes = checkErrors(timesheetId);
@@ -61,18 +65,22 @@ public class TimesheetRowService {
     }
 
     @Secured({ Role.ADMIN, Role.EMPLOYEE })
-    @Path("/{id}")
     @POST
     @Consumes("application/json")
-    public Response insert(@PathParam("id") Integer timesheetId, List<TimesheetRow> timesheetRows) {
+    // Creates timesheet rows
+    public Response insert(@QueryParam("timesheetId") Integer timesheetId, TimesheetRow timesheetRow) {
         try {
-            final Response errorRes = checkErrors(timesheetId, timesheetRows);
-            if (errorRes != null) {
-                return errorRes;
+            final Timesheet timesheet = timesheetManager.find(timesheetId);
+            if (timesheet == null) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            } else if (timesheet.getEmployee().getEmpNumber() != authEmployee.getEmpNumber()) {
+                return Response.status(Response.Status.UNAUTHORIZED).build();
+            } else if (timesheet.getDetails().size() == Timesheet.DAYS_IN_WEEK) {
+                return Response.status(Response.Status.UNSUPPORTED_MEDIA_TYPE)
+                        .entity("Cannot add more rows to a timesheet with 7 rows").build();
             }
-            timesheetRowManager.create(timesheetId, timesheetRows);
+            timesheetRowManager.create(timesheetId, timesheetRow);
         } catch (final Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return Response.serverError().build();
         }
@@ -80,37 +88,24 @@ public class TimesheetRowService {
     }
 
     @Secured({ Role.ADMIN, Role.EMPLOYEE })
-    @Path("/{id}")
     @PATCH
     @Consumes("application/json")
-    public Response update(@PathParam("id") Integer timesheetId, List<TimesheetRow> timesheetRows) {
+    // Updates a timesheet row
+    public Response update(@QueryParam("timesheetId") Integer timesheetId, TimesheetRow timesheetRow) {
         try {
-            final Response errorRes = checkErrors(timesheetId, timesheetRows);
+            final Response errorRes = checkErrors(timesheetId);
             if (errorRes != null) {
                 return errorRes;
             }
-            timesheetRowManager.update(timesheetId, timesheetRows);
+            timesheetRowManager.update(timesheetId, timesheetRow);
         } catch (final SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return Response.serverError().build();
         }
         return Response.noContent().build();
     }
 
-    private Response checkErrors(int timesheetId, List<TimesheetRow> timesheetRows) throws SQLException {
-        final Timesheet timesheet = timesheetManager.find(timesheetId);
-        if (timesheet == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        } else if (timesheet.getEmployee().getEmpNumber() != authEmployee.getEmpNumber()) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        } else if (timesheet.getDetails().size() == Timesheet.DAYS_IN_WEEK
-                || timesheetRows.size() >= Timesheet.DAYS_IN_WEEK) {
-            throw new IllegalAccessError("Cannot add more rows to a timesheet with 7 rows");
-        }
-        return null;
-    }
-
+    // Checks for errors in the timesheet row
     private Response checkErrors(int timesheetId) throws SQLException {
         final Timesheet timesheet = timesheetManager.find(timesheetId);
         if (timesheet == null) {

@@ -25,14 +25,18 @@ import com.corejsf.services.security.annotations.AuthenticatedEmployee;
 public class AuthenticationService {
 
     @Inject
+    // Provides access to the Credentials table
     private CredentialsManager credManager;
 
     @Inject
     @AuthenticatedEmployee
+    // Event to be fired on successful authentication
     Event<String> employeeAuthenticatedEvent;
 
+    // Helper for password encryption
     private PasswordHelper passwordHelper;
 
+    // Provides authentication support
     public AuthenticationService() {
         try {
             passwordHelper = new PasswordHelper();
@@ -45,6 +49,7 @@ public class AuthenticationService {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    // Authenticates a user
     public Response authenticateUser(Credentials credentials) {
         try {
             authenticate(credentials.getUsername(), credentials.getPassword());
@@ -58,6 +63,7 @@ public class AuthenticationService {
         }
     }
 
+    // Helper for authentication
     private void authenticate(String username, String password) throws AuthenticationException, SQLException {
         final Credentials stored = credManager.find(username);
         if (stored == null) {

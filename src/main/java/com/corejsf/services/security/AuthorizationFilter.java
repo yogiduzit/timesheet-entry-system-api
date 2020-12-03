@@ -29,16 +29,20 @@ import com.corejsf.services.security.annotations.Secured;
 public class AuthorizationFilter implements ContainerRequestFilter {
 
     @Context
+    // Provides class associated to a resource
     private ResourceInfo resourceInfo;
 
     @Inject
     @AuthenticatedEmployee
+    // The authenticated employee
     private Employee authEmployee;
 
     @Inject
+    // Provides access to the Admins table
     private AdminManager adminManager;
 
     @Override
+    // Filters the request and authorizes the user
     public void filter(ContainerRequestContext requestContext) throws IOException {
 
         // Get the resource class which matches with the requested URL
@@ -67,6 +71,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
     }
 
     // Extract the roles from the annotated element
+    // Gets roles from an annotation
     private List<Role> extractRoles(AnnotatedElement annotatedElement) {
         if (annotatedElement == null) {
             return new ArrayList<Role>();
@@ -81,6 +86,7 @@ public class AuthorizationFilter implements ContainerRequestFilter {
         }
     }
 
+    // Checks the permissions for a user
     private void checkPermissions(List<Role> allowedRoles) throws Exception {
         Role currentRole = authEmployee.getRole();
         if (authEmployee.getRole() == Role.EMPLOYEE) {

@@ -35,6 +35,7 @@ public class CredentialService {
     @Path("/{username}")
     @GET
     @Produces("application/json")
+    // Gets the credentials for a user
     public Credentials find(@PathParam("username") String userName) {
         final Response errorRes = checkErrors(authEmployee, userName);
         if (errorRes != null) {
@@ -57,6 +58,7 @@ public class CredentialService {
     @Secured({ Role.ADMIN })
     @POST
     @Consumes("application/json")
+    // Inserts a credentials for a user in the db
     public Response insert(Credentials credentials) {
         try {
             credentialsManager.insert(credentials);
@@ -72,6 +74,7 @@ public class CredentialService {
     @Path("/{id}")
     @PATCH
     @Consumes("application/json")
+    // Updates an existing credential
     public Response merge(Credentials credentials, @PathParam("id") Integer empId) {
         final Response errorRes = checkErrors(authEmployee, empId);
         if (errorRes != null) {
@@ -87,6 +90,7 @@ public class CredentialService {
         return Response.noContent().build();
     }
 
+    // Checks if credentials belong to current employee
     private static Response checkErrors(Employee authEmployee, int empId) {
         if (authEmployee.getRole() == Role.EMPLOYEE && !(authEmployee.getEmpNumber() == empId)) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -94,6 +98,7 @@ public class CredentialService {
         return null;
     }
 
+    // Checks if credentials belong to current employee
     private static Response checkErrors(Employee authEmployee, String username) {
         if (authEmployee.getRole() == Role.EMPLOYEE && !(authEmployee.getUsername().equals(username))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();

@@ -25,16 +25,19 @@ import com.corejsf.services.security.annotations.Secured;
 public class EmployeeService {
 
     @Inject
+    // Provides access to the employee table
     private EmployeeManager employeeManager;
 
     @Inject
     @AuthenticatedEmployee
+    // Gets the authenticated employee
     private Employee authEmployee;
 
     @Secured({ Role.ADMIN, Role.EMPLOYEE })
     @GET
     @Path("/{id}")
     @Produces("application/json")
+    // Finds an employee
     public Employee find(@PathParam("id") Integer empId) {
         if (authEmployee.getRole() == Role.EMPLOYEE && authEmployee.getEmpNumber() != empId) {
             throw new WebApplicationException(Response.Status.FORBIDDEN);
@@ -55,6 +58,7 @@ public class EmployeeService {
     @Secured({ Role.ADMIN })
     @GET
     @Produces("application/json")
+    // Gets a list of all employees
     public Employee[] getAll() {
         Employee[] employees;
         try {
@@ -72,6 +76,7 @@ public class EmployeeService {
     @Secured({ Role.ADMIN })
     @POST
     @Consumes("application/json")
+    // Inserts an employee in the database
     public Response persist(Employee employee) {
         try {
             employeeManager.persist(employee);
@@ -86,6 +91,7 @@ public class EmployeeService {
     @Path("/{id}")
     @PATCH
     @Consumes("application/json")
+    // Updates an existing employee
     public Response merge(Employee employee, @PathParam("id") Integer empId) {
         if (authEmployee.getRole() == Role.EMPLOYEE && authEmployee.getEmpNumber() != empId) {
             throw new WebApplicationException(Response.Status.FORBIDDEN);
@@ -102,6 +108,7 @@ public class EmployeeService {
     @Secured({ Role.ADMIN })
     @Path("/{id}")
     @DELETE
+    // Deletes an existing employee
     public Response remove(Employee employee, @PathParam("id") Integer empId) {
         try {
             employeeManager.remove(employee, empId);
