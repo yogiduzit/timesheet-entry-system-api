@@ -214,8 +214,8 @@ public class TimesheetManager implements Serializable {
                 }
             }
         } catch (final SQLException ex) {
-            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
+            throw ex;
         }
         return timesheetId;
     }
