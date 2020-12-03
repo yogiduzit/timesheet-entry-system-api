@@ -4,20 +4,22 @@
 package com.corejsf.access;
 
 import java.io.Serializable;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLDataException;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ConversationScoped;
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
 
-import com.corejsf.messages.MessageProvider;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+
+import com.corejsf.helpers.PasswordHelper;
 import com.corejsf.model.employee.Credentials;
 
 /**
@@ -32,6 +34,7 @@ import com.corejsf.model.employee.Credentials;
 public class CredentialsManager implements Serializable {
 
     private static String TAG = "Credential";
+    private PasswordHelper passwordHelper;
 
     /**
      * Variable for implementing Serialiable
@@ -44,11 +47,14 @@ public class CredentialsManager implements Serializable {
     @Resource(mappedName = "java:jboss/datasources/MySQLDS")
     private DataSource dataSource;
 
-    @Inject
-    /**
-     * Provides access to the messages from the message bundle
-     */
-    private MessageProvider msgProvider;
+    public CredentialsManager() {
+        try {
+            passwordHelper = new PasswordHelper();
+        } catch (final NoSuchAlgorithmException e) {
+            passwordHelper = null;
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Method to get the credentials by employee number
@@ -57,20 +63,21 @@ public class CredentialsManager implements Serializable {
      * @return credentials, username and password of the employee
      * @return null, if the emp does not exist
      * @throws SQLException
+     * @throws DecoderException
      */
-    public Credentials find(int empNumber) throws SQLException {
+    public Credentials findByToken(String token) throws SQLException, DecoderException {
         Connection connection = null;
         PreparedStatement stmt = null;
         try {
             try {
                 connection = dataSource.getConnection();
                 try {
-                    stmt = connection.prepareStatement("SELECT * FROM Credentials WHERE EmpNo = ?");
-                    stmt.setInt(1, empNumber);
+                    stmt = connection.prepareStatement("SELECT * FROM Credentials WHERE EmpToken = ?");
+                    stmt.setBytes(1, Hex.decodeHex(token));
                     final ResultSet result = stmt.executeQuery();
                     if (result.next()) {
-                        final Credentials credentials = new Credentials(result.getString("EmpUserName"),
-                                result.getString("EmpPassword"));
+                        final String password = Hex.encodeHexString(result.getBytes("EmpToken"));
+                        final Credentials credentials = new Credentials(result.getString("EmpUserName"), password);
                         credentials.setEmpNumber(result.getInt("EmpNo"));
                         return credentials;
                     }
@@ -86,7 +93,40 @@ public class CredentialsManager implements Serializable {
             }
         } catch (final SQLException ex) {
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.find", new Object[] { TAG }));
+            throw ex;
+        }
+        return null;
+    }
+
+    public Credentials find(String empUserName) throws SQLException {
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        try {
+            try {
+                connection = dataSource.getConnection();
+                try {
+                    stmt = connection.prepareStatement("SELECT * FROM Credentials WHERE EmpUserName = ?");
+                    stmt.setString(1, empUserName);
+                    final ResultSet result = stmt.executeQuery();
+                    if (result.next()) {
+                        final String password = Hex.encodeHexString(result.getBytes("EmpToken"));
+                        final Credentials credentials = new Credentials(result.getString("EmpUserName"), password);
+                        credentials.setEmpNumber(result.getInt("EmpNo"));
+                        return credentials;
+                    }
+                } finally {
+                    if (stmt != null) {
+                        stmt.close();
+                    }
+                }
+            } finally {
+                if (connection != null) {
+                    connection.close();
+                }
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+            throw ex;
         }
         return null;
     }
@@ -100,7 +140,7 @@ public class CredentialsManager implements Serializable {
     public void insert(Credentials credentials) throws SQLException {
         final int EmpNo = 1;
         final int EmpUserName = 2;
-        final int EmpPassword = 3;
+        final int EmpToken = 3;
         Connection connection = null;
         PreparedStatement stmt = null;
         try {
@@ -110,8 +150,8 @@ public class CredentialsManager implements Serializable {
                     stmt = connection.prepareStatement("INSERT INTO Credentials VALUES(?, ?, ?)");
                     stmt.setInt(EmpNo, credentials.getEmpNumber());
                     stmt.setString(EmpUserName, credentials.getUsername());
-                    stmt.setString(EmpPassword, credentials.getPassword());
-
+                    final byte[] token = passwordHelper.encrypt(credentials.getUsername() + credentials.getPassword());
+                    stmt.setBytes(EmpToken, token);
                     stmt.executeUpdate();
                 } finally {
                     if (stmt != null) {
@@ -128,7 +168,7 @@ public class CredentialsManager implements Serializable {
             throw ex;
         } catch (final SQLException ex) {
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.create", new Object[] { TAG }));
+            throw ex;
         }
     }
 
@@ -138,9 +178,9 @@ public class CredentialsManager implements Serializable {
      * @param credentials, credentials object containing username and password
      * @throws SQLException
      */
-    public void merge(Credentials credentials) throws SQLException {
+    public void merge(Credentials credentials, int id) throws SQLException {
         final int EmpUserName = 1;
-        final int EmpPassword = 2;
+        final int EmpToken = 2;
         final int EmpNo = 3;
 
         Connection connection = null;
@@ -150,11 +190,11 @@ public class CredentialsManager implements Serializable {
                 connection = dataSource.getConnection();
                 try {
                     stmt = connection.prepareStatement(
-                            "UPDATE Credentials " + "SET EmpUserName=?, EmpPassword=? " + "WHERE EmpNo = ?");
-                    stmt.setInt(EmpNo, credentials.getEmpNumber());
+                            "UPDATE Credentials " + "SET EmpUserName=?, EmpToken=? " + "WHERE EmpNo = ?");
+                    stmt.setInt(EmpNo, id);
                     stmt.setString(EmpUserName, credentials.getUsername());
-                    stmt.setString(EmpPassword, credentials.getPassword());
-
+                    final byte[] token = passwordHelper.encrypt(credentials.getUsername() + credentials.getPassword());
+                    stmt.setBytes(EmpToken, token);
                     stmt.executeUpdate();
                 } finally {
                     if (stmt != null) {
@@ -166,12 +206,9 @@ public class CredentialsManager implements Serializable {
                     connection.close();
                 }
             }
-        } catch (final SQLIntegrityConstraintViolationException ex) {
-            ex.printStackTrace();
-            throw ex;
         } catch (final SQLException ex) {
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.edit", new Object[] { TAG }));
+            throw ex;
         }
     }
 

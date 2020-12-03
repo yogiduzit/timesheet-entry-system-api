@@ -4,9 +4,7 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLDataException;
 import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +15,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
 
-import com.corejsf.messages.MessageProvider;
 import com.corejsf.model.employee.Employee;
 import com.corejsf.model.timesheet.Timesheet;
 import com.corejsf.model.timesheet.TimesheetRow;
@@ -50,9 +47,6 @@ public class TimesheetManager implements Serializable {
 
     @Inject
     private EmployeeManager empManager;
-
-    @Inject
-    private MessageProvider msgProvider;
 
     /**
      * Getting the Timesheets.
@@ -88,12 +82,9 @@ public class TimesheetManager implements Serializable {
                     connection.close();
                 }
             }
-        } catch (final SQLIntegrityConstraintViolationException ex) {
-            ex.printStackTrace();
-            throw ex;
         } catch (final SQLException ex) {
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.getAll", new Object[] { TAG }));
+            return null;
         }
         return timesheets;
     }
@@ -133,14 +124,51 @@ public class TimesheetManager implements Serializable {
                     connection.close();
                 }
             }
-        } catch (final SQLIntegrityConstraintViolationException ex) {
-            ex.printStackTrace();
-            throw ex;
         } catch (final SQLException ex) {
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.getAll", new Object[] { TAG }));
+            return null;
         }
         return timesheets;
+    }
+
+    /**
+     * Getting all the timesheets for one employee.
+     *
+     * @throws SQLException
+     */
+    public Timesheet find(Integer timesheetId) throws SQLException {
+        Timesheet timesheet = null;
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        try {
+            try {
+                connection = dataSource.getConnection();
+                try {
+                    stmt = connection.prepareStatement("SELECT * FROM Timesheets WHERE TimesheetID = ?");
+                    stmt.setInt(1, timesheetId);
+                    final ResultSet result = stmt.executeQuery();
+                    if (result.next()) {
+                        final int id = result.getInt("TimesheetID");
+                        final List<TimesheetRow> rows = rowManager.getTimesheetRows(id);
+                        final Employee employee = empManager.find(result.getInt("EmpNo"));
+                        timesheet = new Timesheet(employee, result.getDate("EndWeek").toLocalDate(), rows);
+                        timesheet.setId(id);
+                    }
+                } finally {
+                    if (stmt != null) {
+                        stmt.close();
+                    }
+                }
+            } finally {
+                if (connection != null) {
+                    connection.close();
+                }
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        return timesheet;
     }
 
     /**
@@ -171,7 +199,7 @@ public class TimesheetManager implements Serializable {
                         timesheetId = rs.getInt(1);
                     }
                     connection.commit();
-                    rowManager.create(timesheetId, timesheet.getDetails());
+                    rowManager.create(timesheet.getId(), timesheet.getDetails());
                 } catch (final SQLException e) {
                     connection.rollback();
                     throw e;
@@ -185,12 +213,9 @@ public class TimesheetManager implements Serializable {
                     connection.close();
                 }
             }
-        } catch (final SQLIntegrityConstraintViolationException ex) {
-            ex.printStackTrace();
-            throw ex;
         } catch (final SQLException ex) {
+            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.create", new Object[] { TAG }));
         }
         return timesheetId;
     }
@@ -200,7 +225,7 @@ public class TimesheetManager implements Serializable {
      *
      * @throws SQLException
      */
-    public void merge(Timesheet timesheet) throws SQLException {
+    public void merge(Timesheet timesheet, int id) throws SQLException {
         final int EmpNo = 1;
         final int EndWeek = 2;
         final int TimesheetID = 3;
@@ -216,7 +241,7 @@ public class TimesheetManager implements Serializable {
                             "UPDATE Timesheets " + "SET EmpNo = ?, EndWeek = ? " + "WHERE TimesheetID = ?");
                     stmt.setInt(EmpNo, timesheet.getEmployee().getEmpNumber());
                     stmt.setDate(EndWeek, java.sql.Date.valueOf(timesheet.getEndWeek()));
-                    stmt.setInt(TimesheetID, timesheet.getId());
+                    stmt.setInt(TimesheetID, id);
                     stmt.executeUpdate();
                     connection.commit();
                     rowManager.update(timesheet.getId(), timesheet.getDetails());
@@ -233,12 +258,10 @@ public class TimesheetManager implements Serializable {
                     connection.close();
                 }
             }
-        } catch (final SQLIntegrityConstraintViolationException ex) {
+        } catch (final SQLException ex) {
+            System.out.println("Error in find" + TAG);
             ex.printStackTrace();
             throw ex;
-        } catch (final SQLException ex) {
-            ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.edit", new Object[] { TAG }));
         }
     }
 }

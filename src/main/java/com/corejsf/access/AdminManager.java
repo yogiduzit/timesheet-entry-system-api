@@ -9,11 +9,9 @@ import java.sql.Statement;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ConversationScoped;
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
 
-import com.corejsf.messages.MessageProvider;
 import com.corejsf.model.employee.Employee;
 
 @Named("adminManager")
@@ -30,19 +28,14 @@ public class AdminManager implements Serializable {
     @Resource(mappedName = "java:jboss/datasources/MySQLDS")
     private DataSource dataSource;
 
-    @Inject
-    /**
-     * Provides access to messages in the message bundle
-     */
-    private MessageProvider msgProvider;
-
     /**
      * Finds the admin user for the application
      *
      * @return the admin employee
+     * @throws SQLException
      * @throws SQLDataException
      */
-    public Employee find() throws SQLDataException {
+    public Employee find() throws SQLException {
         Connection connection = null;
         Statement stmt = null;
         try {
@@ -70,7 +63,7 @@ public class AdminManager implements Serializable {
             }
         } catch (final SQLException ex) {
             ex.printStackTrace();
-            throw new SQLDataException(msgProvider.getValue("error.find", new Object[] { TAG }));
+            throw ex;
         }
     }
 
