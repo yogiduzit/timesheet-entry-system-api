@@ -57,10 +57,10 @@ public class TimesheetService {
             }
         } catch (final SQLException e) {
             e.printStackTrace();
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
         if (timesheets == null) {
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            throw new WebApplicationException("Could not find timesheets", Response.Status.NOT_FOUND);
         }
         return timesheets;
     }
@@ -79,16 +79,16 @@ public class TimesheetService {
         Timesheet timesheet = null;
         try {
             timesheet = timesheetManager.find(id);
-            final Response errorRes = checkErrors(timesheet);
-            if (errorRes != null) {
-                throw new WebApplicationException(Response.Status.FORBIDDEN);
+            if (authEmployee.getRole() == Role.EMPLOYEE
+                    && timesheet.getEmployee().getEmpNumber() != authEmployee.getEmpNumber()) {
+                throw new WebApplicationException("Cannot access this timesheet", Response.Status.UNAUTHORIZED);
             }
         } catch (final SQLException e) {
             e.printStackTrace();
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
         if (timesheet == null) {
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            throw new WebApplicationException("Could not find timesheet", Response.Status.NOT_FOUND);
         }
         return timesheet;
     }
@@ -112,7 +112,7 @@ public class TimesheetService {
         } catch (final SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            return Response.serverError().build();
+            return Response.serverError().entity(e).build();
         }
         return Response.created(URI.create("/timesheets/" + timesheet.getId())).build();
     }
@@ -138,7 +138,7 @@ public class TimesheetService {
         } catch (final SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            return Response.serverError().build();
+            return Response.serverError().entity(e).build();
         }
         return Response.noContent().build();
     }

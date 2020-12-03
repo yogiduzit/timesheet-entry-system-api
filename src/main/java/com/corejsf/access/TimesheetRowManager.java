@@ -104,7 +104,8 @@ public class TimesheetRowManager implements Serializable {
             try {
                 connection = dataSource.getConnection();
                 try {
-                    stmt = connection.prepareStatement("INSERT INTO TimesheetRows VALUES(?, ?, ?, ?, ?)",
+                    stmt = connection.prepareStatement(
+                            "INSERT INTO TimesheetRows(TimesheetID, ProjectID, WorkPackage, Notes, HoursForWeek) VALUES(?, ?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS);
                     for (final TimesheetRow timesheetRow : timesheetRows) {
                         if (timesheetRow.getWorkPackage() == null || timesheetRow.getWorkPackage().isEmpty()) {
@@ -149,12 +150,11 @@ public class TimesheetRowManager implements Serializable {
      * @throws SQLException
      */
     public void create(Integer timesheetId, TimesheetRow timesheetRow) throws SQLException {
-        final int TimesheetRowId = 1;
-        final int TimesheetID = 2;
-        final int ProjectID = 3;
-        final int WorkPackage = 4;
-        final int Notes = 5;
-        final int HoursForWeek = 6;
+        final int TimesheetID = 1;
+        final int ProjectID = 2;
+        final int WorkPackage = 3;
+        final int Notes = 4;
+        final int HoursForWeek = 5;
 
         Connection connection = null;
         PreparedStatement stmt = null;
@@ -162,12 +162,12 @@ public class TimesheetRowManager implements Serializable {
             try {
                 connection = dataSource.getConnection();
                 try {
-                    stmt = connection.prepareStatement("INSERT INTO TimesheetRows VALUES(?, ?, ?, ?, ?, ?)",
+                    stmt = connection.prepareStatement(
+                            "INSERT INTO TimesheetRows(TimesheetID, ProjectID, WorkPackage, Notes, HoursForWeek) VALUES(?, ?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS);
                     if (timesheetRow.getWorkPackage() == null || timesheetRow.getWorkPackage().isEmpty()) {
                         throw new IllegalArgumentException("Please enter all values");
                     }
-                    stmt.setInt(TimesheetRowId, 1);
                     stmt.setInt(TimesheetID, timesheetId);
                     stmt.setInt(ProjectID, timesheetRow.getProjectID());
                     stmt.setString(WorkPackage, timesheetRow.getWorkPackage());

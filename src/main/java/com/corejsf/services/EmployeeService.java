@@ -65,10 +65,10 @@ public class EmployeeService {
             employees = employeeManager.getAll();
         } catch (final SQLException e) {
             e.printStackTrace();
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
         if (employees == null) {
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            throw new WebApplicationException("No employees exist", Response.Status.NOT_FOUND);
         }
         return employees;
     }
@@ -82,7 +82,7 @@ public class EmployeeService {
             employeeManager.persist(employee);
         } catch (final SQLException e) {
             e.printStackTrace();
-            return Response.serverError().build();
+            return Response.serverError().entity(e).build();
         }
         return Response.created(URI.create("/employees/" + employee.getEmpNumber())).build();
     }
@@ -94,13 +94,13 @@ public class EmployeeService {
     // Updates an existing employee
     public Response merge(Employee employee, @PathParam("id") Integer empId) {
         if (authEmployee.getRole() == Role.EMPLOYEE && authEmployee.getEmpNumber() != empId) {
-            throw new WebApplicationException(Response.Status.FORBIDDEN);
+            throw new WebApplicationException("Cannot edit another employee's credentials", Response.Status.FORBIDDEN);
         }
         try {
             employeeManager.merge(employee, empId);
         } catch (final SQLException e) {
             e.printStackTrace();
-            return Response.serverError().build();
+            return Response.serverError().entity(e).build();
         }
         return Response.noContent().build();
     }
@@ -114,7 +114,7 @@ public class EmployeeService {
             employeeManager.remove(employee, empId);
         } catch (final SQLException e) {
             e.printStackTrace();
-            return Response.serverError().build();
+            return Response.serverError().entity(e).build();
         }
         return Response.ok().build();
     }

@@ -47,10 +47,11 @@ public class CredentialService {
         } catch (final SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
         if (cred == null) {
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            throw new WebApplicationException("Unable to find credentials with given username",
+                    Response.Status.NOT_FOUND);
         }
         return cred;
     }
@@ -65,7 +66,7 @@ public class CredentialService {
         } catch (final SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            return Response.serverError().build();
+            return Response.serverError().entity(e).build();
         }
         return Response.created(URI.create("/credentials/" + credentials.getEmpNumber())).build();
     }
@@ -85,7 +86,7 @@ public class CredentialService {
         } catch (final SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            return Response.serverError().build();
+            return Response.serverError().entity(e).build();
         }
         return Response.noContent().build();
     }
@@ -93,7 +94,8 @@ public class CredentialService {
     // Checks if credentials belong to current employee
     private static Response checkErrors(Employee authEmployee, int empId) {
         if (authEmployee.getRole() == Role.EMPLOYEE && !(authEmployee.getEmpNumber() == empId)) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot access another user's credentials")
+                    .build();
         }
         return null;
     }
@@ -101,7 +103,8 @@ public class CredentialService {
     // Checks if credentials belong to current employee
     private static Response checkErrors(Employee authEmployee, String username) {
         if (authEmployee.getRole() == Role.EMPLOYEE && !(authEmployee.getUsername().equals(username))) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot access another user's credentials")
+                    .build();
         }
         return null;
     }

@@ -51,15 +51,15 @@ public class TimesheetRowService {
         try {
             final Response errorRes = checkErrors(timesheetId);
             if (errorRes != null) {
-                throw new WebApplicationException(errorRes.getStatus());
+                throw new WebApplicationException((String) errorRes.getEntity(), errorRes.getStatus());
             }
             timesheetRow = timesheetRowManager.getTimesheetRows(timesheetId);
         } catch (final SQLException e) {
             e.printStackTrace();
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
         if (timesheetRow == null) {
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            throw new WebApplicationException("Couldn't find timesheet row", Response.Status.NOT_FOUND);
         }
         return timesheetRow;
     }
@@ -72,9 +72,11 @@ public class TimesheetRowService {
         try {
             final Timesheet timesheet = timesheetManager.find(timesheetId);
             if (timesheet == null) {
-                return Response.status(Response.Status.NOT_FOUND).build();
+                return Response.status(Response.Status.NOT_FOUND).entity("Unable to find a timesheet to insert to")
+                        .build();
             } else if (timesheet.getEmployee().getEmpNumber() != authEmployee.getEmpNumber()) {
-                return Response.status(Response.Status.UNAUTHORIZED).build();
+                return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot modify another's user's timesheet")
+                        .build();
             } else if (timesheet.getDetails().size() == Timesheet.DAYS_IN_WEEK) {
                 return Response.status(Response.Status.UNSUPPORTED_MEDIA_TYPE)
                         .entity("Cannot add more rows to a timesheet with 7 rows").build();
@@ -82,7 +84,7 @@ public class TimesheetRowService {
             timesheetRowManager.create(timesheetId, timesheetRow);
         } catch (final Exception e) {
             e.printStackTrace();
-            return Response.serverError().build();
+            return Response.serverError().entity(e).build();
         }
         return Response.created(URI.create("/rows/" + timesheetId)).build();
     }
@@ -100,7 +102,7 @@ public class TimesheetRowService {
             timesheetRowManager.update(timesheetId, timesheetRow);
         } catch (final SQLException e) {
             e.printStackTrace();
-            return Response.serverError().build();
+            return Response.serverError().entity(e).build();
         }
         return Response.noContent().build();
     }
@@ -109,9 +111,10 @@ public class TimesheetRowService {
     private Response checkErrors(int timesheetId) throws SQLException {
         final Timesheet timesheet = timesheetManager.find(timesheetId);
         if (timesheet == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.NOT_FOUND).entity("Cannot find timesheet").build();
         } else if (timesheet.getEmployee().getEmpNumber() != authEmployee.getEmpNumber()) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Cannot access another user's timesheet")
+                    .build();
         }
         return null;
     }

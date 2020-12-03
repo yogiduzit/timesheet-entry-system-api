@@ -35,10 +35,10 @@ public class AdminService {
             admin = adminManager.find();
         } catch (final SQLException e) {
             e.printStackTrace();
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
         if (admin == null) {
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            throw new WebApplicationException("An admin user does not exist", Response.Status.NOT_FOUND);
         }
         return admin;
     }
