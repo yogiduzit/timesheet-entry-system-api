@@ -1,4 +1,5 @@
-# Assignment 1
+# COMP3910
+## Assignment 3
 
 ## Contributors
 Sung Na
