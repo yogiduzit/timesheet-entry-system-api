@@ -3,7 +3,7 @@
 
 
 ## Deployed Links
-Yogesh Kumar Verma http://asst3-yverma-assignments.apps.okd4.infoteach.ca/api
+Yogesh Kumar Verma http://asst3-yverma-assignments.apps.okd4.infoteach.ca/api \
 Sung Na http://comp-3910-assignment-3-git-nas-assignments.apps.okd4.infoteach.ca/ 
 
 
